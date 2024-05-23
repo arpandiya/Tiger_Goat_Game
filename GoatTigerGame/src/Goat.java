@@ -3,12 +3,14 @@ public class Goat {
     int y;
     int goatHeight;
     int goatWidth;
+    int id;
 
-    public Goat(int x, int y) {
+    public Goat(int x, int y, int id) {
         this.x = x;
         this.y = y;
         this.goatHeight = 30;
         this.goatWidth = 30;
+        this.id = id;
     }
 
 }

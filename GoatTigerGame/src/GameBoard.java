@@ -2,7 +2,10 @@
 
       //  https://docs.google.com/document/d/e/2PACX-1vSOmrJYAncRtGu2-jwqASUtNJWfECHw7ZeRrmU6yoQ3eUUhz_hXlLx8arDPqSiGXgfSX2oaxKzyxLqS/pub
 
+import jdk.jfr.Event;
+
 import java.awt.*;
+import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
@@ -10,10 +13,12 @@ import java.util.ArrayList;
 public class GameBoard extends GameEngine implements KeyListener {
     final int WIDTH = 800;
     final int HEIGHT = 800;
+    final int MAX_GOAT = 5;
+    int goatsPlaced = 0;
 
     Image tigerImage, goatImage;
     Image boardImage;
-    boolean goatTurn = false;
+    boolean goatTurn = true; //set to true for testing
     int selectedBox = -1;
     int tiger1, tiger2, tiger3, tiger4;
     boolean isTiger1, isTiger2, isTiger3, isTiger4;
@@ -24,8 +29,8 @@ public class GameBoard extends GameEngine implements KeyListener {
     ArrayList<Tiger> tigers;
     ArrayList<Goat> goats;
 
-
-    Box chosenBox;
+    boolean attemptMove = false;
+    Box chosenBox, previousBox = new Box(0,0,-1);
 
     @Override
     public void init() {
@@ -67,10 +72,10 @@ public class GameBoard extends GameEngine implements KeyListener {
             tigers.add(tiger);
         }
         //initialise goats
-        for (int i = 0; i < 20; i++) {
-            Goat goat = new Goat(0, 0);
-            goats.add(goat);
-        }
+//        for (int i = 0; i < 20; i++) {
+//            Goat goat = new Goat(0, 0, -1);
+//            goats.add(goat);
+//        }
         System.out.println("Tigers: " + tigers.size());
         System.out.println("Goats: " + goats.size());
 
@@ -299,12 +304,46 @@ public class GameBoard extends GameEngine implements KeyListener {
 
         for (Box b : boxes) {
             if (((b.x + b.width) >= event.getX() && b.x <= event.getX()) && (b.y + b.height >= event.getY()) && (b.y <= event.getY())) {
-                System.out.println("ID: " + b.id);
+                //System.out.println("ID: " + b.id);
                 selectedBox = b.id;
-                if (goatTurn && b.isEmpty) {
-                    goats.add(new Goat(b.x, b.y));
-                    b.isEmpty = false;
+
+
+                if (goatTurn){ //All goat actions in this statement
+                    System.out.println(b.isEmpty);
+                    if(b.isEmpty) {
+                        System.out.println("Previousbox: " + previousBox.id);
+
+                        if (goatsPlaced < MAX_GOAT) { //Add goat to empty square
+                            goats.add(new Goat(b.x, b.y, b.id));
+                            goatsPlaced++;
+                            b.isEmpty = false;
+//                            System.out.println("Placing goat");
+                        } else if (attemptMove) {
+                            System.out.println("Trying to move");
+                            for (int i = 0; i < goats.size(); i++) {
+                                if (goats.get(i).id == previousBox.id) {
+                                    goats.remove(i);
+                                }
+                            }
+                            goats.add(new Goat(b.x, b.y, b.id));
+                            b.isEmpty = false;
+                            previousBox.isEmpty = true;
+                            boxes.set(previousBox.id, previousBox);//Makes the previous location empty
+                            attemptMove = false;
+                        }
+
+
+                    }
+                    else if(goats.size() >= MAX_GOAT) { //square not empty
+                        //Need to select the square for later reference
+                        previousBox = b;
+                        attemptMove = true;
+                        System.out.println("Selecting square");
+                    }
+                } else if (!goatTurn) { //All tiger turn actions in this statement...
+
                 }
+
                 break;
             }
         }
@@ -344,7 +383,8 @@ public class GameBoard extends GameEngine implements KeyListener {
                        b.isEmpty = true;
                    }
                }
-                System.out.println("Pressed: " + b.id);
+
+                //System.out.println("Pressed: " + b.id);
                 break;
             }
 
@@ -381,8 +421,17 @@ public class GameBoard extends GameEngine implements KeyListener {
 
 
                 }
-                System.out.println("Clicked: " + b.id);
+                //System.out.println("Clicked: " + b.id);
                 break;
+            }
+        }
+    }
+
+    @Override
+    public void keyPressed(KeyEvent event){ //Troubleshooting: to see where goats are stored
+        if (event.getKeyCode() == KeyEvent.VK_SPACE){
+            for (int i = 0; i < goats.size(); i++){
+                System.out.println(goats.get(i).id);
             }
         }
     }
