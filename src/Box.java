@@ -3,7 +3,7 @@ import java.awt.*;
 public class Box {
     public int x, y;
     private final int index;
-    public boolean occupied = false;
+    private boolean occupied = false;
 
     public Box(int x, int y, int index) {
         this.x = x;
