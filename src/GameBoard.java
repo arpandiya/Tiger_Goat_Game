@@ -195,6 +195,11 @@ public class GameBoard extends GameEngine implements KeyListener, MouseListener 
         for (Tiger t : TIGERS) {
             drawImage(TigerImg, t.x + t.getPosOffset(), t.y + t.getPosOffset(), BOX_SIZE, BOX_SIZE);
         }
+        if (goatTurn){ //For tracking turns...will need updating later
+            drawText(30,30, "Goat's turn!");
+        } else {
+            drawText(30,30, "Tiger's turn!");
+        }
     }
 
     // Click to add a tile
@@ -206,6 +211,7 @@ public class GameBoard extends GameEngine implements KeyListener, MouseListener 
                     Goat newGoat = new Goat(BOXES.indexOf(b));
                     b.setOccupied(true);
                     GOATS.add(newGoat);
+                    goatTurn = false;
                 }
             }
         }
@@ -246,11 +252,11 @@ public class GameBoard extends GameEngine implements KeyListener, MouseListener 
         int y = e.getY() - mouseOffsetY;
 
         if (draggingATile) {
-            if (draggedGoat != null) {
+            if (draggedGoat != null && goatTurn) {
                 draggedGoat.x = x;
                 draggedGoat.y = y;
             }
-            if (draggedTiger != null) {
+            if (draggedTiger != null && !goatTurn) {
                 draggedTiger.x = x;
                 draggedTiger.y = y;
             }
@@ -288,20 +294,23 @@ public class GameBoard extends GameEngine implements KeyListener, MouseListener 
 
             // If tile released on box, move it there
             if (b.containsMouse(e.getX(), e.getY(), BOX_SIZE)) {
-                if (draggedGoat != null) {
+                if (draggedGoat != null && goatTurn) {
                     System.out.println("Goat moved: " + startBox.getIndex() + "->" + b.getIndex());
                     draggedGoat.x = b.x;
                     draggedGoat.y = b.y;
                     startBox.setOccupied(false);
                     b.setOccupied(true);
-                } else if (draggedTiger != null) {
+
+                } else if (draggedTiger != null && !goatTurn) {
                     System.out.println("Tiger moved: " + startBox.getIndex() + "->" + b.getIndex());
                     draggedTiger.x = b.x;
                     draggedTiger.y = b.y;
                     startBox.setOccupied(false);
                     b.setOccupied(true);
+
                 }
                 moved = true;
+                goatTurn = !goatTurn;
                 break;
             }
         }
