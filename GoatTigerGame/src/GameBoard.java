@@ -1,393 +1,384 @@
+
 //<iframe src="https://docs.google.com/document/d/e/2PACX-1vSOmrJYAncRtGu2-jwqASUtNJWfECHw7ZeRrmU6yoQ3eUUhz_hXlLx8arDPqSiGXgfSX2oaxKzyxLqS/pub?embedded=true"></iframe>
 
-      //  https://docs.google.com/document/d/e/2PACX-1vSOmrJYAncRtGu2-jwqASUtNJWfECHw7ZeRrmU6yoQ3eUUhz_hXlLx8arDPqSiGXgfSX2oaxKzyxLqS/pub
-
+//  https://docs.google.com/document/d/e/2PACX-1vSOmrJYAncRtGu2-jwqASUtNJWfECHw7ZeRrmU6yoQ3eUUhz_hXlLx8arDPqSiGXgfSX2oaxKzyxLqS/pub
 import java.awt.*;
+import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+
+import static java.lang.Integer.parseInt;
 
 public class GameBoard extends GameEngine implements KeyListener {
-    final int WIDTH = 800;
-    final int HEIGHT = 800;
+    final int BOARD_WIDTH = 800;
+    final int BOARD_HEIGHT = 800;
 
-    Image tigerImage, goatImage;
-    Image boardImage;
-    boolean goatTurn = false;
-    int selectedBox = -1;
-    int tiger1, tiger2, tiger3, tiger4;
-    boolean isTiger1, isTiger2, isTiger3, isTiger4;
-    Point p1;
-    Box start, end;
+    static boolean goatTurn = true;
+    boolean tigerTurn = false;
+    final int MAX_GOAT = 20;
+    static int goatPlaced = 0;
+    static int goatEaten = 0;
+    static int totalMoves = 0;
+    static boolean gameOver;
+    static int trapCount;
+
+    Image boardImg, tigerImg, goatImg;
+    HashMap<Integer, Integer[]> validPath;
+
+    String goatIcon = "🐐";
+    String tigerIcon = "\uD83D\uDC2F";
+
+    Tiger tiger;
+    Goat goat;
+
 
     ArrayList<Box> boxes;
-    ArrayList<Tiger> tigers;
-    ArrayList<Goat> goats;
 
-
-    Box chosenBox;
-
-    @Override
-    public void init() {
-        setWindowSize(WIDTH, HEIGHT);
-        boardImage = loadImage("GoatTigerGame/src/images/boardImg.png");
-        tigerImage = loadImage("GoatTigerGame/src/images/tigerImg.png");
-        goatImage = loadImage("GoatTigerGame/src/images/goatImg.png");
-        p1 = new Point();
-        boxes = new ArrayList<>();
-        tigers = new ArrayList<>();
-        goats = new ArrayList<>();
-
-        isTiger1 = false;
-        isTiger2= false;
-        isTiger3 = false;
-        isTiger4 = false;
-
-        tiger1 = 1;
-        tiger2 = 5;
-        tiger3 = 21;
-        tiger4 = 25;
-
-        int id = 1;
-        for (int ix = 150; ix < 600; ix += 110) {
-            for (int iy = 150; iy < 600; iy += 110) {
-                Box t = new Box(id, ix, iy);
-                boxes.add(t);
-                id++;
+    public Box getBoxById(int Id) {
+        Box box = null;
+        for(Box b: boxes) {
+            if(b.id == Id) {
+                box= b;
             }
         }
-        //set rules
-        setRules();
+        return box;
+    }
 
-        final int MAX_TIGER = 4;
 
-        //initialize tiger
-        for (int i = 0; i < 4; i++) {
-            Tiger tiger = new Tiger(10, 10);
-            tigers.add(tiger);
+    public void resetGame() {
+        init();
+    }
+    public boolean checkTrap(Box b) {
+        boolean isTrapped = true;
+        // ArrayList<Boolean> status = new ArrayList<>();
+
+        for (Integer key : validPath.keySet()) {
+
+            if(b.id == key) {
+                Integer[] path = validPath.get(key);
+
+                for(int id : path) {
+                    Box box = getBoxById(id);
+                    if(box.isEmpty) {
+                        isTrapped = false;
+
+                    }
+
+                }
+            }
+
+
         }
-        //initialise goats
-        for (int i = 0; i < 20; i++) {
-            Goat goat = new Goat(0, 0);
-            goats.add(goat);
+
+//        for(Boolean val : status) {
+//            System.out.println(val + " ");
+//            break;
+//        }
+
+        return isTrapped;
+
+    }
+    @Override
+    public void init() {
+        setWindowSize(BOARD_WIDTH, BOARD_HEIGHT);
+
+        gameOver = false;
+        totalMoves = 0;
+        goatEaten = 0;
+        trapCount = 0;
+        goatPlaced = 0;
+
+        validPath = new HashMap<>();
+        initGameRules();
+        boardImg = loadImage("GoatTigerGame/src/images/boardImg.png");
+        tigerImg = loadImage("GoatTigerGame/src/images/tigerImg.png");
+        goatImg = loadImage("GoatTigerGame/src/images/goatImg.png");
+        boxes = new ArrayList<>();
+        goat = new Goat();
+        tiger = new Tiger();
+
+        int id = 1;
+        for(int y = 1; y < 6; y++) {
+            for(int x = 1; x < 6; x++) {
+                Box b = new Box();
+                b.x = x*120;
+                b.y = y*120;
+                b.width = 120;
+                b.height = 120;
+                b.id = id;
+                b.wayCount = validPath.get(id).length;
+                boxes.add(b);
+                id++;
+            }
+
         }
-        System.out.println("Tigers: " + tigers.size());
-        System.out.println("Goats: " + goats.size());
+        for(Box b: boxes) {
+            if(b.id == 1 || b.id == 5 || b.id == 21 || b.id == 25) {
+                b.isTigerBox = true;
+                tiger.tigerBoxes.add(b);
+                b.isEmpty = false;
+            }
+        }
+
 
     }
 
-    public void setRules() {
-        for (Box b : boxes) {
-            int id = b.id - 1;
-            switch (id) {
-                case 0:
-                    boxes.get(id).top = false;
-                    boxes.get(id).left = false;
-                    boxes.get(id).topLeft = false;
-                    boxes.get(id).topRight = false;
-                    boxes.get(id).bottomLeft = false;
-                    break;
-                case 1:
-                    boxes.get(id).left = false;
-                    boxes.get(id).topLeft = false;
-                    boxes.get(id).topRight = false;
-                    boxes.get(id).bottomLeft = false;
-                    boxes.get(id).bottomRight = false;
-                    break;
-                case 2:
-                    boxes.get(id).left = false;
-                    boxes.get(id).topLeft = false;
-                    boxes.get(id).bottomLeft = false;
-                    break;
-                case 3:
-                    boxes.get(id).left = false;
-                    boxes.get(id).topLeft = false;
-                    boxes.get(id).topRight = false;
-                    boxes.get(id).bottomLeft = false;
-                    boxes.get(id).bottomRight = false;
-                    break;
-                case 4:
-                    boxes.get(id).left = false;
-                    boxes.get(id).topLeft = false;
-                    boxes.get(id).bottom = false;
-                    boxes.get(id).bottomLeft = false;
-                    boxes.get(id).bottomRight = false;
-                    break;
-                case 5:
-                    boxes.get(id).top = false;
-                    boxes.get(id).topLeft = false;
-                    boxes.get(id).bottomLeft = false;
-                    boxes.get(id).bottomRight = false;
-                    break;
-                case 7:
-                    boxes.get(id).topRight = false;
-                    boxes.get(id).topLeft = false;
-                    boxes.get(id).bottomLeft = false;
-                    boxes.get(id).bottomRight = false;
-                    break;
-                case 9:
-                    boxes.get(id).topLeft = false;
-                    boxes.get(id).topRight = false;
-                    boxes.get(id).bottom = false;
-                    boxes.get(id).bottomLeft = false;
-                    boxes.get(id).bottomRight = false;
-                    break;
-                case 10:
-                    boxes.get(id).top = false;
-                    boxes.get(id).topLeft = false;
-                    boxes.get(id).topRight = false;
-                    break;
-                case 11:
-                    boxes.get(id).topRight = false;
-                    boxes.get(id).topLeft = false;
-                    boxes.get(id).bottomLeft = false;
-                    boxes.get(id).bottomRight = false;
-                    break;
-                case 12:
-                    boxes.get(id).topRight = false;
-                    boxes.get(id).topLeft = false;
-                    boxes.get(id).bottomLeft = false;
-                    boxes.get(id).bottomRight = false;
-                    break;
-                case 14:
-                    boxes.get(id).bottom = false;
-                    boxes.get(id).bottomLeft = false;
-                    boxes.get(id).bottomRight = false;
-                    break;
-                case 15:
-                    boxes.get(id).top = false;
-                    boxes.get(id).topLeft = false;
-                    boxes.get(id).topRight = false;
-                    boxes.get(id).bottomLeft = false;
-                    boxes.get(id).bottomRight = false;
-                    break;
-                case 17:
-                    boxes.get(id).topLeft = false;
-                    boxes.get(id).topRight = false;
-                    boxes.get(id).bottomLeft = false;
-                    boxes.get(id).bottomRight = false;
-                    break;
-                case 19:
-                    boxes.get(id).bottom = false;
-                    boxes.get(id).bottomLeft = false;
-                    boxes.get(id).bottomRight = false;
-                    boxes.get(id).topLeft = false;
-                    boxes.get(id).topRight = false;
-                    break;
-                case 20:
-                    boxes.get(id).top = false;
-                    boxes.get(id).right = false;
-                    boxes.get(id).topLeft = false;
-                    boxes.get(id).topRight = false;
-                    boxes.get(id).bottomRight = false;
-                    break;
-                case 21:
-                    boxes.get(id).right = false;
-                    boxes.get(id).topLeft = false;
-                    boxes.get(id).topRight = false;
-                    boxes.get(id).bottomRight = false;
-                    boxes.get(id).bottomLeft = false;
-                    break;
-                case 22:
-                    boxes.get(id).right = false;
-                    boxes.get(id).topRight = false;
-                    boxes.get(id).bottomRight = false;
-                    break;
-                case 23:
-                    boxes.get(id).right = false;
-                    boxes.get(id).topLeft = false;
-                    boxes.get(id).topRight = false;
-                    boxes.get(id).bottomRight = false;
-                    boxes.get(id).bottomLeft = false;
-                    break;
-                case 24:
-                    boxes.get(id).bottom = false;
-                    boxes.get(id).right = false;
-                    boxes.get(id).topRight = false;
-                    boxes.get(id).bottomRight = false;
-                    boxes.get(id).bottomLeft = false;
-                    break;
-
+    //check if there is a valid way
+    public boolean isValidPath(Integer from, Integer to) {
+        boolean res = false;
+        for(Integer key : validPath.keySet()) {
+            boolean isIn = Arrays.stream(validPath.get(from)).toList().contains(to);
+            if(isIn) {
+                res = true;
             }
         }
+        return res;
     }
 
 
     @Override
     public void update(double dt) {
+        checkGameOver();
 
     }
 
+    public void initGameRules() {
+        validPath.put(1, new Integer[]{2, 6, 7});
+        validPath.put(2, new Integer[]{1, 3, 7});
+        validPath.put(3, new Integer[]{2, 4, 7, 8, 9});
+        validPath.put(4, new Integer[]{3, 5, 9});
+        validPath.put(5, new Integer[]{4, 9, 10});
+        validPath.put(6, new Integer[]{1, 7, 11});
+        validPath.put(7, new Integer[]{1, 2, 3, 6, 8, 11, 12, 13});
+        validPath.put(8, new Integer[]{3, 7, 9, 13});
+        validPath.put(9, new Integer[]{3, 4, 5, 8, 10, 13, 14, 15});
+        validPath.put(10, new Integer[]{5, 9, 15});
+        validPath.put(11, new Integer[]{6, 7, 12, 16, 17});
+        validPath.put(12, new Integer[]{7, 11, 13, 17});
+        validPath.put(13, new Integer[]{7, 8, 9, 12, 14, 17, 18, 19});
+        validPath.put(14, new Integer[]{9, 13, 15, 19});
+        validPath.put(15, new Integer[]{9, 10, 14, 19, 20});
+        validPath.put(16, new Integer[]{11, 12,17, 21 });
+        validPath.put(17, new Integer[]{11, 12, 13, 16, 18, 21, 22, 23 });
+        validPath.put(18, new Integer[]{13, 17, 19, 23 });
+        validPath.put(19, new Integer[]{13, 14, 15, 18, 20, 23, 24, 25});
+        validPath.put(20, new Integer[]{15, 19, 25 });
+        validPath.put(21, new Integer[]{16, 17, 22 });
+        validPath.put(22, new Integer[]{17, 21, 23 });
+        validPath.put(23, new Integer[]{17, 18, 19, 22, 24 });
+        validPath.put(24, new Integer[]{19, 23, 25});
+        validPath.put(25, new Integer[]{19, 20, 24 });
+
+    }
+
+    public void drawBoardImg() {
+        drawImage(boardImg, 120, 120, 520, 520);
+    }
+
+    public void drawTigerDashboard() {
+        changeColor(Color.GRAY);
+        drawSolidRectangle(120, 70, 520, 30);
+
+        changeColor(Color.WHITE);
+        drawText(130, 90, "Tiger moves: " + totalMoves, "", 16);
+        drawText(320, 90, "Trapped: " + trapCount, "", 16);
+    }
+
+    public void drawGoatDashboard() {
+        changeColor(Color.GRAY);
+        drawSolidRectangle(120, 700, 520, 30);
+
+        changeColor(Color.WHITE);
+        drawText(130, 720, "Goat placed: " + goatPlaced, "", 16);
+        drawText(320, 720, "Killed: " + goatEaten, "", 16);
+    }
+
+    public void drawComponents() {
+        for(Box bg : boxes) {
+            if(bg.isGoatBox) {
+               // drawText(bg.x, bg.y + 35, goatIcon, "", 49);
+                drawImage(goatImg, bg.x, bg.y,50, 50 );
+            }
+            if(bg.isTigerBox && !bg.isEmpty) {
+               // drawText(bg.x, bg.y + 35, tigerIcon, "", 49);
+                drawImage(tigerImg, bg.x, bg.y,50, 50 );
+            }
+        }
+    }
+
+
+    public void drawGameOver() {
+        if(gameOver) {
+            changeColor(Color.BLACK);
+            drawSolidRectangle(120, 300, 520, 120);
+
+            changeColor(Color.ORANGE);
+            drawText( 200, 360, "Game Over !", "", 60);
+
+            changeColor(Color.WHITE);
+            drawText( 240, 390, "Press Enter to restart !", "", 20);
+        }
+    }
+
+    public void checkGameOver() {
+        if(goatEaten > 8 || trapCount >= 4) {
+            gameOver = true;
+        }
+    }
     @Override
     public void paintComponent() {
         saveCurrentTransform();
-        changeBackgroundColor(Color.darkGray);
-        clearBackground(WIDTH, HEIGHT);
-
-        changeColor(Color.WHITE);
-        drawImage(boardImage, 150, 150, 480, 480);
-
-        changeColor(Color.ORANGE);
-
-        //draw board
-        for (Box b : boxes) {
-            String id = String.valueOf(b.id);
-            drawText(b.x, b.y, id, "", 15);
-            drawRectangle(b.x, b.y, b.width, b.height);
-
-            if (b.id == tiger1 || b.id == tiger2 || b.id == tiger3 || b.id == tiger4) {
-                drawImage(tigerImage, b.x, b.y, b.width, b.height);
-               // drawText(b.x, b.y + 30, tigerIcon, "", 35);
-                b.isEmpty = false;
-            }
-        }
-
-        for (Box b : boxes) {
-            if (selectedBox == b.id) {
-                Box box = boxes.get(b.id - 1);
-                changeColor(Color.GREEN);
-                drawRectangle(box.x, box.y, box.width, box.height);
-            }
-        }
+        changeBackgroundColor(Color.lightGray);
+        clearBackground(BOARD_WIDTH, BOARD_HEIGHT);
 
 
-        if (!goatTurn) {
-            //draw control
-            changeColor(Color.ORANGE);
-            drawRectangle(250, 670, 90, 50);
-            drawImage(tigerImage, 255, 670, 50, 50 );
-            //drawText(255, 680, tigerIcon, "", 40);
+        drawBoardImg();
+        drawTigerDashboard();
+        drawGoatDashboard();
+
+        if(!gameOver) {
+            drawComponents();
         } else {
-            changeColor(Color.GRAY);
-            drawRectangle(250, 670, 90, 50);
-            drawImage(tigerImage, 255, 670, 50, 50 );
+            drawGameOver();
         }
 
-        if (goatTurn) {
-            //draw control
-            changeColor(Color.GRAY);
-            drawSolidRectangle(140, 670, 90, 50);
-            drawImage(goatImage, 155, 670, 70, 50);
-            //drawText(155, 680, goatIcon, "", 40);
-        } else {
-            //draw control
-            changeColor(Color.WHITE);
-            drawRectangle(140, 670, 90, 50);
-            drawImage(goatImage, 155, 670, 70, 50);
-            //drawText(155, 680, goatIcon, "", 40);
-        }
-
-        //draw goat
-        if (goatTurn && !goats.isEmpty()) {
-            for (Goat g : goats) {
-                drawImage(goatImage, g.x, g.y, g.goatWidth+15, g.goatHeight+15);
-                //drawText(g.x, g.y + 25, goatIcon, "", 40);
-
-            }
-        }
+//        for(Boxx b: boxes) {
+//            if(b.isSelected){
+//                changeColor(Color.ORANGE);
+//            } else {
+//                changeColor(Color.gray);
+//            }
+//            changeColor(Color.RED);
+//            drawRectangle(b.x, b.y, 50, 50);
+//            String id = String.valueOf(b.id);
+//            drawText(b.x, b.y, id, "", 14);
+//
+//        }
 
         restoreLastTransform();
-
     }
 
-
-    //key listener
     @Override
     public void mouseClicked(MouseEvent event) {
-        p1.x = event.getX();
-        p1.y = event.getY();
+        super.mouseClicked(event);
 
-        for (Box b : boxes) {
-            if (((b.x + b.width) >= event.getX() && b.x <= event.getX()) && (b.y + b.height >= event.getY()) && (b.y <= event.getY())) {
-                System.out.println("ID: " + b.id);
-                selectedBox = b.id;
-                if (goatTurn && b.isEmpty) {
-                    goats.add(new Goat(b.x, b.y));
-                    b.isEmpty = false;
+        for(Box b: boxes) {
+            if( (b.x+b.width) >= event.getX() && b.x <= event.getX()) {
+                if( (b.y+b.height) >= event.getY() && b.y <= event.getY()) {
+                    if( goatPlaced < MAX_GOAT && b.isEmpty) {
+                        goatTurn = false;
+                        tigerTurn = true;
+                        b.isGoatBox = true;
+                        b.isEmpty = false;
+                        goatPlaced+=1;
+                    }
                 }
-                break;
             }
+
+        }
+        ArrayList<Integer> trap = new ArrayList<>();
+        for (Box box : boxes) {
+            if(box.isTigerBox) {
+                if(checkTrap(box)) {
+                    if(!trap.contains(box.id)) {
+                        trap.add(box.id);
+                    }
+                    System.out.println("Tiger " + box.id +" is trapped !");
+                }
+
+            }
+            trapCount = trap.size();
         }
     }
-    //mouse drag to move
 
+    Box moveFrom;
 
     @Override
     public void mousePressed(MouseEvent event) {
-        super.mouseDragged(event);
+        super.mousePressed(event);
 
-        for (Box b : boxes) {
-            if (((b.x + b.width) >= event.getX() && b.x <= event.getX()) && (b.y + b.height >= event.getY()) && (b.y <= event.getY())) {
-               if(!goatTurn) {
-
-                   if(tiger1 == b.id) {
-                       tiger1 = b.id;
-                       isTiger1 = true;
-                       b.isEmpty = true;
-                   }
-
-                   if(tiger2 == b.id) {
-                       tiger2 = b.id;
-                       isTiger2 = true;
-                       b.isEmpty = true;
-                   }
-
-                   if(tiger3 == b.id) {
-                       tiger3 = b.id;
-                       isTiger3 = true;
-                       b.isEmpty = true;
-                   }
-
-                   if(tiger4 == b.id) {
-                       tiger4 = b.id;
-                       isTiger4 = true;
-                       b.isEmpty = true;
-                   }
-               }
-                System.out.println("Pressed: " + b.id);
-                break;
+        for(Box b: boxes) {
+            if ((b.x + b.width) >= event.getX() && b.x <= event.getX()) {
+                if ((b.y + b.height) >= event.getY() && b.y <= event.getY()) {
+                    moveFrom = b;
+                }
             }
-
         }
     }
 
     @Override
     public void mouseReleased(MouseEvent event) {
         super.mouseReleased(event);
-        for (Box b : boxes) {
-            if (((b.x + b.width) >= event.getX() && b.x <= event.getX()) && (b.y + b.height >= event.getY()) && (b.y <= event.getY())) {
-                if(!goatTurn) {
+        for(Box b: boxes) {
+            if ((b.x + b.width) >= event.getX() && b.x <= event.getX()) {
+                if ((b.y + b.height) >= event.getY() && b.y <= event.getY()) {
+                    if(isValidPath(moveFrom.id, b.id) || eatGoat(moveFrom, b)) {
+                        if(moveFrom.isGoatBox && goatPlaced >= MAX_GOAT && b.isEmpty) {
+                            b.isGoatBox = true;
+                            moveFrom.isGoatBox = false;
+                            moveFrom.isEmpty = true;
+                            b.isEmpty = false;
+                            goatTurn = false;
+                        }
+                        if(moveFrom.isTigerBox && b.isEmpty) {
+                            b.isTigerBox = true;
+                            moveFrom.isTigerBox = false;
 
-                    if(isTiger1 && b.isEmpty) {
-                        tiger1 = b.id;
-                        isTiger1 = false;
-                        b.isEmpty = false;
-                    }
-                    if(isTiger2 && b.isEmpty) {
-                        tiger2 = b.id;
-                        isTiger2 = false;
-                        b.isEmpty = false;
-                    }
-                    if(isTiger3 && b.isEmpty) {
-                        tiger3 = b.id;
-                        isTiger3 = false;
-                        b.isEmpty = false;
-                    }
-                    if(isTiger4 && b.isEmpty) {
-                        tiger4 = b.id;
-                        isTiger4 = false;
-                        b.isEmpty = false;
+                            moveFrom.isEmpty = true;
+                            b.isEmpty = false;
+                            goatTurn = true;
+                            eatGoat(moveFrom, b);
+
+                            totalMoves++;
+
+                        }
+                    } else {
+                        System.out.println("Not a valid move");
                     }
 
+                    System.out.println("Goat Turn: " + goatTurn);
+                    System.out.println("Placed goat: " + goatPlaced);
+//                    System.out.println("is "+ moveFrom.id + " empty : " + moveFrom.isEmpty );
+//                    System.out.println("is "+ b.id + " empty : " + b.isEmpty );
 
                 }
-                System.out.println("Clicked: " + b.id);
-                break;
             }
         }
     }
 
+    @Override
+    public void keyPressed(KeyEvent event) {
+        if(event.getKeyCode() == KeyEvent.VK_ENTER && gameOver) {
+            resetGame();
+        }
+    }
+
+    private boolean eatGoat(Box from, Box to) {
+        boolean isEating = false;
+
+        ArrayList<Integer> checkId = new ArrayList<>();
+
+        Integer sumId = from.id + to.id;
+        Integer eatenGoatId = sumId/2;
+
+        for(Box b: boxes) {
+            if(b.id == eatenGoatId && b.isGoatBox && to.isEmpty) {
+                b.isGoatBox = false;
+                b.isEmpty = true;
+                isEating = true;
+                goatEaten++;
+            }
+        }
+
+        return isEating;
+
+    }
+
     public static void main(String[] args) {
         createGame(new GameBoard(), 60);
+
     }
 }

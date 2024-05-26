@@ -1,15 +1,10 @@
-public class Goat {
-    int x;
-    int y;
-    int goatHeight;
-    int goatWidth;
 
-    public Goat(int x, int y) {
-        this.x = x;
-        this.y = y;
-        this.goatHeight = 30;
-        this.goatWidth = 30;
-    }
+import java.awt.*;
+import java.util.ArrayList;
+
+public class Goat {
+    int x, y, width, height;
+    ArrayList<Box> goatBoxes = new ArrayList<>();
 
 }
 
