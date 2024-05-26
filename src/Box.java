@@ -3,7 +3,7 @@ import java.awt.*;
 public class Box {
     public int x, y;
     private final int index;
-    private boolean occupied = false;
+    private Object occupant;
 
     public Box(int x, int y, int index) {
         this.x = x;
@@ -11,11 +11,25 @@ public class Box {
         this.index = index;
     }
 
+    public boolean occupiedByGoat() {
+        for (Goat g: GameBoard.getGoats()) {
+            if (g.getBoxIndex() == index) return true;
+        }
+        return false;
+    }
+
+    public boolean occupiedByTiger() {
+        for (Tiger t: GameBoard.getTigers()) {
+            if (t.getBoxIndex() == index) return true;
+        }
+        return false;
+    }
+
     public boolean containsMouse(int mouseX, int mouseY, int boxSize) {
         return new Rectangle(x, y, boxSize, boxSize).contains(mouseX, mouseY);
     }
 
     public int getIndex() { return index; }
-    public void setOccupied(boolean o) { occupied = o; }
-    public boolean isOccupied() { return occupied; }
+    public void setOccupant(Object o) { occupant = o; }
+    public Object getOccupant() { return occupant; }
 }

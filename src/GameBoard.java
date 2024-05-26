@@ -5,6 +5,8 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 
 public class GameBoard extends GameEngine implements KeyListener, MouseListener {
 
@@ -56,129 +58,105 @@ public class GameBoard extends GameEngine implements KeyListener, MouseListener 
         }
 
         // Add tigers
-        TIGERS.add(new Tiger(0)); BOXES.get(0).setOccupied(true);
-        TIGERS.add(new Tiger(4)); BOXES.get(4).setOccupied(true);
-        TIGERS.add(new Tiger(20)); BOXES.get(20).setOccupied(true);
-        TIGERS.add(new Tiger(24)); BOXES.get(24).setOccupied(true);
+        TIGERS.add(new Tiger(0));
+        TIGERS.add(new Tiger(4));
+        TIGERS.add(new Tiger(20));
+        TIGERS.add(new Tiger(24));
     }
 
+    public void resetGame() { init(); }
+
     // Returns valid neighbours of any given box
-    public ArrayList<Integer> getValidMoveIndices(int boxIndex) {
-        final ArrayList<Integer> validMoves = new ArrayList<>();
+    public Integer[] getLegalMoves(int boxIndex) {
+        final HashMap<Integer, Integer[]> LEGAL_MOVES = new HashMap<>();
+        LEGAL_MOVES.put(0, new Integer[]{1, 5, 6});
+        LEGAL_MOVES.put(1, new Integer[]{0, 2, 6});
+        LEGAL_MOVES.put(2, new Integer[]{1, 3, 6, 7, 8});
+        LEGAL_MOVES.put(3, new Integer[]{2, 4, 8});
+        LEGAL_MOVES.put(4, new Integer[]{3, 8, 9});
+        LEGAL_MOVES.put(5, new Integer[]{0, 6, 10});
+        LEGAL_MOVES.put(6, new Integer[]{0, 1, 2, 5, 7, 10, 11, 12});
+        LEGAL_MOVES.put(7, new Integer[]{2, 6, 8, 12});
+        LEGAL_MOVES.put(8, new Integer[]{2, 3, 4, 7, 9, 12, 13, 14});
+        LEGAL_MOVES.put(9, new Integer[]{4, 8, 14});
+        LEGAL_MOVES.put(10, new Integer[]{5, 6, 11, 15, 16});
+        LEGAL_MOVES.put(11, new Integer[]{6, 10, 12, 16});
+        LEGAL_MOVES.put(12, new Integer[]{6, 7, 8, 11, 13, 16, 17, 18});
+        LEGAL_MOVES.put(13, new Integer[]{8, 12, 14, 18});
+        LEGAL_MOVES.put(14, new Integer[]{8, 9, 13, 18, 19});
+        LEGAL_MOVES.put(15, new Integer[]{10, 11, 16, 20});
+        LEGAL_MOVES.put(16, new Integer[]{10, 11, 12, 15, 17, 20, 21, 22});
+        LEGAL_MOVES.put(17, new Integer[]{12, 16, 18, 22});
+        LEGAL_MOVES.put(18, new Integer[]{12, 13, 14, 17, 19, 22, 23, 24});
+        LEGAL_MOVES.put(19, new Integer[]{14, 18, 24});
+        LEGAL_MOVES.put(20, new Integer[]{15, 16, 21});
+        LEGAL_MOVES.put(21, new Integer[]{16, 20, 22});
+        LEGAL_MOVES.put(22, new Integer[]{16, 17, 18, 21, 23});
+        LEGAL_MOVES.put(23, new Integer[]{18, 22, 24});
+        LEGAL_MOVES.put(24, new Integer[]{18, 19, 23});
 
-        int top = boxIndex - 5;
-        int topleft = top - 1;
-        int topright = top + 1;
-        int left = boxIndex - 1;
-        int right = boxIndex + 1;
-        int bottom = boxIndex + 5;
-        int bottomleft = bottom - 1;
-        int bottomright = bottom + 1;
+        return LEGAL_MOVES.get(boxIndex);
+    }
 
-        switch (boxIndex) {
-            // Corners
-            case 0:
-                validMoves.add(right);
-                validMoves.add(bottom);
-                validMoves.add(bottomright);
-                break;
-            case 4:
-                validMoves.add(left);
-                validMoves.add(bottomleft);
-                validMoves.add(bottom);
-                break;
-            case 20:
-                validMoves.add(top);
-                validMoves.add(topright);
-                validMoves.add(right);
-                break;
-            case 24:
-                validMoves.add(topleft);
-                validMoves.add(top);
-                validMoves.add(left);
-                break;
+    public Integer[] getLegalJumps(int boxIndex) {
+        final HashMap<Integer, Integer[]> LEGAL_JUMPS = new HashMap<>();
+        LEGAL_JUMPS.put(0, new Integer[]{2, 10, 12});
+        LEGAL_JUMPS.put(1, new Integer[]{3, 11});
+        LEGAL_JUMPS.put(2, new Integer[]{0, 4, 12});
+        LEGAL_JUMPS.put(3, new Integer[]{1, 13});
+        LEGAL_JUMPS.put(4, new Integer[]{2, 12, 14});
+        LEGAL_JUMPS.put(5, new Integer[]{7, 15});
+        LEGAL_JUMPS.put(6, new Integer[]{8, 16, 18});
+        LEGAL_JUMPS.put(7, new Integer[]{5, 9, 17});
+        LEGAL_JUMPS.put(8, new Integer[]{6, 16, 18});
+        LEGAL_JUMPS.put(9, new Integer[]{7, 19});
+        LEGAL_JUMPS.put(10, new Integer[]{0, 2, 12, 20, 22});
+        LEGAL_JUMPS.put(11, new Integer[]{1, 13, 21});
+        LEGAL_JUMPS.put(12, new Integer[]{0, 2, 4, 10, 14, 20, 22, 24});
+        LEGAL_JUMPS.put(13, new Integer[]{3, 11, 23});
+        LEGAL_JUMPS.put(14, new Integer[]{2, 4, 12, 22, 24});
+        LEGAL_JUMPS.put(15, new Integer[]{5, 17});
+        LEGAL_JUMPS.put(16, new Integer[]{6, 8, 18});
+        LEGAL_JUMPS.put(17, new Integer[]{7, 15, 19});
+        LEGAL_JUMPS.put(18, new Integer[]{6, 8, 16});
+        LEGAL_JUMPS.put(19, new Integer[]{9, 17});
+        LEGAL_JUMPS.put(20, new Integer[]{10, 12, 22});
+        LEGAL_JUMPS.put(21, new Integer[]{11, 23});
+        LEGAL_JUMPS.put(22, new Integer[]{10, 12, 14, 20, 24});
+        LEGAL_JUMPS.put(23, new Integer[]{13, 21});
+        LEGAL_JUMPS.put(24, new Integer[]{12, 14, 22});
 
+        return LEGAL_JUMPS.get(boxIndex);
+    }
 
-            // Edges
-            case 1, 3:
-                validMoves.add(left);
-                validMoves.add(right);
-                validMoves.add(bottom);
-                break;
-            case 2:
-                validMoves.add(left);
-                validMoves.add(right);
-                validMoves.add(bottomleft);
-                validMoves.add(bottom);
-                validMoves.add(bottomright);
-                break;
+//
+//    public boolean checkTrapped(Box b) {
+//        boolean isTrapped = true;
+//        Integer[] options = getLegalJumps(b.getIndex());
+//
+//        for (int id : options) {
+//            if (!BOXES.get(id).getOccupant() == null) {
+//                isTrapped = false;
+//            }
+//        }
+//        return isTrapped;
+//    }
 
-            case 5, 15:
-                validMoves.add(top);
-                validMoves.add(right);
-                validMoves.add(bottom);
-                break;
-            case 10:
-                validMoves.add(top);
-                validMoves.add(topright);
-                validMoves.add(right);
-                validMoves.add(bottom);
-                validMoves.add(bottomright);
-                break;
+    public void eatGoat(int from, int to) {
+        if (BOXES.get(to).getOccupant() != null) return;
 
-            case 9, 19:
-                validMoves.add(top);
-                validMoves.add(left);
-                validMoves.add(bottom);
-                break;
-            case 14:
-                validMoves.add(top);
-                validMoves.add(topleft);
-                validMoves.add(left);
-                validMoves.add(bottom);
-                validMoves.add(bottomleft);
-                break;
+        Box hoppedBox = BOXES.get((from + to) / 2);
 
-            case 21, 23:
-                validMoves.add(top);
-                validMoves.add(left);
-                validMoves.add(right);
-                break;
-            case 22:
-                validMoves.add(top);
-                validMoves.add(left);
-                validMoves.add(topleft);
-                validMoves.add(right);
-                validMoves.add(topright);
-                break;
-
-
-            // Centers
-            case 6,8,12,16,18:
-                validMoves.add(topleft);
-                validMoves.add(top);
-                validMoves.add(topright);
-                validMoves.add(left);
-                validMoves.add(right);
-                validMoves.add(bottomleft);
-                validMoves.add(bottom);
-                validMoves.add(bottomright);
-                break;
-            case 7,11,13,17:
-                validMoves.add(top);
-                validMoves.add(left);
-                validMoves.add(right);
-                validMoves.add(bottom);
-                break;
-            default:
-                throw new IllegalStateException("Unexpected value: " + boxIndex);
+        System.out.println(hoppedBox.getIndex() + ": " + hoppedBox.getOccupant());
+        if (hoppedBox.getOccupant() != null && hoppedBox.occupiedByGoat()) {
+            GOATS.remove(hoppedBox.getOccupant());
+            hoppedBox.setOccupant(null);
         }
-        return validMoves;
     }
 
     @Override
     public void update(double dt) {
-
+//        checkGameOver();
     }
 
     @Override
@@ -200,11 +178,11 @@ public class GameBoard extends GameEngine implements KeyListener, MouseListener 
         restoreLastTransform();
 
         // Draw Boxes
-        for (Box b : BOXES) {
-            if (b.isOccupied()) changeColor(Color.red);
-            else changeColor(Color.green);
-            drawRectangle(b.x, b.y, BOX_SIZE, BOX_SIZE);
-        }
+//        for (Box b : BOXES) {
+//            if (b.getOccupant() != null) changeColor(Color.red);
+//            else changeColor(Color.green);
+//            drawRectangle(b.x, b.y, BOX_SIZE, BOX_SIZE);
+//        }
 
         // Draw Goats
         for (Goat g : GOATS) {
@@ -222,9 +200,8 @@ public class GameBoard extends GameEngine implements KeyListener, MouseListener 
     public void mouseClicked(MouseEvent e) {
         for (Box b : BOXES) {
             if (b.containsMouse(e.getX(), e.getY(), BOX_SIZE)) {
-                if (goatTurn && !b.isOccupied() && GOATS.size() < MAX_GOATS) {
+                if (goatTurn && b.getOccupant() == null && GOATS.size() < MAX_GOATS) {
                     GOATS.add(new Goat(BOXES.indexOf(b)));
-                    b.setOccupied(true);
                     goatTurn = false;
                 }
             }
@@ -298,44 +275,51 @@ public class GameBoard extends GameEngine implements KeyListener, MouseListener 
         }
     }
 
+    // Checking if valid move
     @Override
     public void mouseReleased(MouseEvent e) {
         if (startBox == null) return;
         boolean moved = false;
 
         for (Box newBox : BOXES) {
-            if (newBox.isOccupied()) continue; // Occupied
-            if (!getValidMoveIndices(startBox.getIndex()).contains(newBox.getIndex())) continue; // Not a valid move
+            if (newBox.getOccupant() != null) continue; // Occupied
 
             // If tile released on box, move it there
             if (newBox.containsMouse(e.getX(), e.getY(), BOX_SIZE)) {
                 if (draggedGoat != null && goatTurn) {
-                    System.out.println("Goat moved: " + startBox.getIndex() + "->" + newBox.getIndex());
-                    draggedGoat.x = newBox.x;
-                    draggedGoat.y = newBox.y;
-                    startBox.setOccupied(false);
-                    newBox.setOccupied(true);
+                    if (!Arrays.asList(getLegalMoves(startBox.getIndex())).contains(newBox.getIndex())) continue; // Not a valid move
+                    draggedGoat.moveBox(startBox, newBox);
                     goatTurn = false;
+                    moved = true;
+//                    checkTrapped();
                 } else if (draggedTiger != null && !goatTurn) {
-                    System.out.println("Tiger moved: " + startBox.getIndex() + "->" + newBox.getIndex());
-                    draggedTiger.x = newBox.x;
-                    draggedTiger.y = newBox.y;
-                    startBox.setOccupied(false);
-                    newBox.setOccupied(true);
-                    goatTurn = true;
+                    // Tiger jumped a goat
+                    if (Arrays.asList(getLegalJumps(startBox.getIndex())).contains(newBox.getIndex())) {
+                        try {
+                            eatGoat(startBox.getIndex(), newBox.getIndex());
+                        } catch (IndexOutOfBoundsException ignored) {}
+
+                        draggedTiger.moveBox(startBox, newBox);
+                        goatTurn = true;
+                        moved = true;
+                    }
+                    // Tiger moved normally
+                    else if (Arrays.asList(getLegalMoves(startBox.getIndex())).contains(newBox.getIndex())) {
+                        draggedTiger.moveBox(startBox, newBox);
+                        goatTurn = true;
+                        moved = true;
+                    }
+
                 }
-                moved = true;
                 break;
             }
         }
         // Tile moved unsuccessfully, snap it back to where it started
         if (!moved) {
             if (draggedGoat != null) {
-                draggedGoat.x = startBox.x;
-                draggedGoat.y = startBox.y;
+                draggedGoat.moveBox(startBox, startBox);
             } else if (draggedTiger != null) {
-                draggedTiger.x = startBox.x;
-                draggedTiger.y = startBox.y;
+                draggedTiger.moveBox(startBox, startBox);
             }
         }
 
