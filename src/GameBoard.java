@@ -9,10 +9,11 @@ import java.util.ArrayList;
 public class GameBoard extends GameEngine implements KeyListener, MouseListener {
 
     // Dimensions and locations
-    private static final int HEIGHT = 1100, WIDTH = 1100;
-    private static final Dimension BOARD_POS = new Dimension(WIDTH/2, HEIGHT/2);
-    private static final int BOARD_SIZE = 600;
-    private static final int BOX_SIZE = 60;
+    private static final int WIDTH = (int)Toolkit.getDefaultToolkit().getScreenSize().getWidth();
+    private static final int HEIGHT = (int)Toolkit.getDefaultToolkit().getScreenSize().getHeight();
+    private static final Point BOARD_POS = new Point(WIDTH/2, HEIGHT/2 - 100);
+    private static final int BOARD_SIZE = 850;
+    private static final int BOX_SIZE = 70;
 
     // Arrays
     private static final int MAX_GOATS = 20;
@@ -21,7 +22,7 @@ public class GameBoard extends GameEngine implements KeyListener, MouseListener 
     private static final ArrayList<Goat> GOATS = new ArrayList<>(20);
 
     // Images
-    private static Image BoardImg, GoatImg, TigerImg;
+    private static Image BoardImg, GoatImg, TigerImg, GoatBackgroundImg, TigerBackgroundImg;
 
     // Dragging
     private static int mouseOffsetX, mouseOffsetY;
@@ -35,17 +36,20 @@ public class GameBoard extends GameEngine implements KeyListener, MouseListener 
     @Override
     public void init() {
         setWindowSize(WIDTH, HEIGHT);
+
         BoardImg = loadImage("src/Images/boardImg.png");
         GoatImg = loadImage("src/Images/goatImg.png");
         TigerImg = loadImage("src/Images/tigerImg.png");
+        GoatBackgroundImg = loadImage("src/Images/goatBackgroundImg.png");
+        TigerBackgroundImg = loadImage("src/Images/tigerBackgroundImg.png");
 
         // Add boxes
         for (int y = 0; y < 5; y++) {
             for (int x = 0; x < 5; x++) {
                 BOXES.add(new Box(
                         //     Spacing              Centre the box            Relative to board         (the 0.82x is to account for the game boards border)
-                        x * (int)(BOARD_SIZE*0.82/4) - BOX_SIZE/2 + (int)(BOARD_POS.getWidth()-BOARD_SIZE*0.82/2),
-                        y * (int)(BOARD_SIZE*0.82/4) - BOX_SIZE/2 + (int)(BOARD_POS.getHeight()-BOARD_SIZE*0.82/2),
+                        x * (int)(BOARD_SIZE*0.82/4) - BOX_SIZE/2 + (int)(BOARD_POS.getX()-BOARD_SIZE*0.82/2),
+                        y * (int)(BOARD_SIZE*0.82/4) - BOX_SIZE/2 + (int)(BOARD_POS.getY()-BOARD_SIZE*0.82/2),
                         BOXES.size()
                 ));
             }
@@ -56,109 +60,115 @@ public class GameBoard extends GameEngine implements KeyListener, MouseListener 
         TIGERS.add(new Tiger(4)); BOXES.get(4).setOccupied(true);
         TIGERS.add(new Tiger(20)); BOXES.get(20).setOccupied(true);
         TIGERS.add(new Tiger(24)); BOXES.get(24).setOccupied(true);
-
-
-
-//        setRules();
     }
 
     // Returns valid neighbours of any given box
     public ArrayList<Integer> getValidMoveIndices(int boxIndex) {
         final ArrayList<Integer> validMoves = new ArrayList<>();
 
+        int top = boxIndex - 5;
+        int topleft = top - 1;
+        int topright = top + 1;
+        int left = boxIndex - 1;
+        int right = boxIndex + 1;
+        int bottom = boxIndex + 5;
+        int bottomleft = bottom - 1;
+        int bottomright = bottom + 1;
+
         switch (boxIndex) {
             // Corners
             case 0:
-                validMoves.add(boxIndex + 1); // Right
-                validMoves.add(boxIndex + 5); // Bottom
-                validMoves.add((boxIndex + 5) + 1); // Bottom right
+                validMoves.add(right);
+                validMoves.add(bottom);
+                validMoves.add(bottomright);
                 break;
             case 4:
-                validMoves.add(boxIndex - 1); // Left
-                validMoves.add((boxIndex + 5) - 1); // Bottom left
-                validMoves.add(boxIndex + 5); // Bottom
+                validMoves.add(left);
+                validMoves.add(bottomleft);
+                validMoves.add(bottom);
                 break;
             case 20:
-                validMoves.add(boxIndex - 5); // Top
-                validMoves.add((boxIndex - 5) + 1); // Top right
-                validMoves.add(boxIndex + 1); // Right
+                validMoves.add(top);
+                validMoves.add(topright);
+                validMoves.add(right);
                 break;
             case 24:
-                validMoves.add((boxIndex - 5) - 1); // Top left
-                validMoves.add(boxIndex - 5); // Top
-                validMoves.add(boxIndex - 1); // Left
+                validMoves.add(topleft);
+                validMoves.add(top);
+                validMoves.add(left);
                 break;
+
 
             // Edges
             case 1, 3:
-                validMoves.add(boxIndex - 1); // Left
-                validMoves.add(boxIndex + 1); // Right
-                validMoves.add(boxIndex + 5); // Bottom
+                validMoves.add(left);
+                validMoves.add(right);
+                validMoves.add(bottom);
                 break;
             case 2:
-                validMoves.add(boxIndex - 1); // Left
-                validMoves.add(boxIndex + 1); // Right
-                validMoves.add((boxIndex + 5) - 1); // Bottom left
-                validMoves.add(boxIndex + 5); // Bottom
-                validMoves.add((boxIndex + 5) + 1); // Bottom right
+                validMoves.add(left);
+                validMoves.add(right);
+                validMoves.add(bottomleft);
+                validMoves.add(bottom);
+                validMoves.add(bottomright);
                 break;
 
             case 5, 15:
-                validMoves.add(boxIndex - 5); // Top
-                validMoves.add(boxIndex + 1); // Right
-                validMoves.add(boxIndex + 5); // Bottom
+                validMoves.add(top);
+                validMoves.add(right);
+                validMoves.add(bottom);
                 break;
             case 10:
-                validMoves.add(boxIndex - 5); // Top
-                validMoves.add((boxIndex - 5) + 1); // Top right
-                validMoves.add(boxIndex + 1); // Right
-                validMoves.add(boxIndex + 5); // Bottom
-                validMoves.add((boxIndex + 5) + 1); // Bottom right
+                validMoves.add(top);
+                validMoves.add(topright);
+                validMoves.add(right);
+                validMoves.add(bottom);
+                validMoves.add(bottomright);
                 break;
 
             case 9, 19:
-                validMoves.add(boxIndex - 5); // Top
-                validMoves.add(boxIndex - 1); // Left
-                validMoves.add(boxIndex + 5); // Bottom
+                validMoves.add(top);
+                validMoves.add(left);
+                validMoves.add(bottom);
                 break;
             case 14:
-                validMoves.add(boxIndex - 5); // Top
-                validMoves.add((boxIndex - 5) - 1); // Top left
-                validMoves.add(boxIndex - 1); // Left
-                validMoves.add(boxIndex + 5); // Bottom
-                validMoves.add((boxIndex + 5) - 1); // Bottom left
+                validMoves.add(top);
+                validMoves.add(topleft);
+                validMoves.add(left);
+                validMoves.add(bottom);
+                validMoves.add(bottomleft);
                 break;
 
             case 21, 23:
-                validMoves.add(boxIndex - 5); // Top
-                validMoves.add(boxIndex - 1); // Left
-                validMoves.add(boxIndex + 1); // Right
+                validMoves.add(top);
+                validMoves.add(left);
+                validMoves.add(right);
                 break;
             case 22:
-                validMoves.add(boxIndex - 5); // Top
-                validMoves.add(boxIndex - 1); // Left
-                validMoves.add((boxIndex - 5) - 1); // Top left
-                validMoves.add(boxIndex + 1); // Right
-                validMoves.add((boxIndex - 5) + 1); // Top right
+                validMoves.add(top);
+                validMoves.add(left);
+                validMoves.add(topleft);
+                validMoves.add(right);
+                validMoves.add(topright);
                 break;
 
 
             // Centers
             case 6,8,12,16,18:
-                validMoves.add((boxIndex - 5) - 1); // Top left
-                validMoves.add(boxIndex - 5); // Top
-                validMoves.add((boxIndex - 5) + 1); // Top right
-                validMoves.add(boxIndex - 1); // Left
-                validMoves.add(boxIndex + 1); // Right
-                validMoves.add((boxIndex + 5) - 1); // Bottom left
-                validMoves.add(boxIndex + 5); // Bottom
-                validMoves.add((boxIndex + 5) + 1); // Bottom right
+                validMoves.add(topleft);
+                validMoves.add(top);
+                validMoves.add(topright);
+                validMoves.add(left);
+                validMoves.add(right);
+                validMoves.add(bottomleft);
+                validMoves.add(bottom);
+                validMoves.add(bottomright);
                 break;
             case 7,11,13,17:
-                validMoves.add(boxIndex - 5); // Top
-                validMoves.add(boxIndex - 1); // Left
-                validMoves.add(boxIndex + 1); // Right
-                validMoves.add(boxIndex + 5); // Bottom
+                validMoves.add(top);
+                validMoves.add(left);
+                validMoves.add(right);
+                validMoves.add(bottom);
                 break;
             default:
                 throw new IllegalStateException("Unexpected value: " + boxIndex);
@@ -176,8 +186,18 @@ public class GameBoard extends GameEngine implements KeyListener, MouseListener 
         changeBackgroundColor(Color.WHITE);
         clearBackground(WIDTH, HEIGHT);
 
+        // Draw Background
+        saveCurrentTransform();
+        translate(WIDTH/2.0, HEIGHT/2.0);
+        if (goatTurn) drawImage(GoatBackgroundImg, -WIDTH/2.0, -HEIGHT/2.0, WIDTH, HEIGHT);
+        else drawImage(TigerBackgroundImg, -WIDTH/2.0, -HEIGHT/2.0, WIDTH, HEIGHT);
+        restoreLastTransform();
+
         // Draw Board
-        drawImage(BoardImg, BOARD_POS.getWidth() - (double)BOARD_SIZE/2,BOARD_POS.getHeight() - (double)BOARD_SIZE/2, BOARD_SIZE, BOARD_SIZE);
+        saveCurrentTransform();
+        translate(BOARD_POS.getX(), BOARD_POS.getY());
+        drawImage(BoardImg, -BOARD_SIZE/2.0, -BOARD_SIZE/2.0, BOARD_SIZE, BOARD_SIZE);
+        restoreLastTransform();
 
         // Draw Boxes
         for (Box b : BOXES) {
@@ -195,11 +215,6 @@ public class GameBoard extends GameEngine implements KeyListener, MouseListener 
         for (Tiger t : TIGERS) {
             drawImage(TigerImg, t.x + t.getPosOffset(), t.y + t.getPosOffset(), BOX_SIZE, BOX_SIZE);
         }
-        if (goatTurn){ //For tracking turns...will need updating later
-            drawText(30,30, "Goat's turn!");
-        } else {
-            drawText(30,30, "Tiger's turn!");
-        }
     }
 
     // Click to add a tile
@@ -208,9 +223,8 @@ public class GameBoard extends GameEngine implements KeyListener, MouseListener 
         for (Box b : BOXES) {
             if (b.containsMouse(e.getX(), e.getY(), BOX_SIZE)) {
                 if (goatTurn && !b.isOccupied() && GOATS.size() < MAX_GOATS) {
-                    Goat newGoat = new Goat(BOXES.indexOf(b));
+                    GOATS.add(new Goat(BOXES.indexOf(b)));
                     b.setOccupied(true);
-                    GOATS.add(newGoat);
                     goatTurn = false;
                 }
             }
@@ -286,31 +300,31 @@ public class GameBoard extends GameEngine implements KeyListener, MouseListener 
 
     @Override
     public void mouseReleased(MouseEvent e) {
+        if (startBox == null) return;
         boolean moved = false;
 
-        for (Box b : BOXES) {
-            if (b.isOccupied()) continue; // Occupied
-            if (!getValidMoveIndices(startBox.getIndex()).contains(b.getIndex())) continue; // Not a valid move
+        for (Box newBox : BOXES) {
+            if (newBox.isOccupied()) continue; // Occupied
+            if (!getValidMoveIndices(startBox.getIndex()).contains(newBox.getIndex())) continue; // Not a valid move
 
             // If tile released on box, move it there
-            if (b.containsMouse(e.getX(), e.getY(), BOX_SIZE)) {
+            if (newBox.containsMouse(e.getX(), e.getY(), BOX_SIZE)) {
                 if (draggedGoat != null && goatTurn) {
-                    System.out.println("Goat moved: " + startBox.getIndex() + "->" + b.getIndex());
-                    draggedGoat.x = b.x;
-                    draggedGoat.y = b.y;
+                    System.out.println("Goat moved: " + startBox.getIndex() + "->" + newBox.getIndex());
+                    draggedGoat.x = newBox.x;
+                    draggedGoat.y = newBox.y;
                     startBox.setOccupied(false);
-                    b.setOccupied(true);
-
+                    newBox.setOccupied(true);
+                    goatTurn = false;
                 } else if (draggedTiger != null && !goatTurn) {
-                    System.out.println("Tiger moved: " + startBox.getIndex() + "->" + b.getIndex());
-                    draggedTiger.x = b.x;
-                    draggedTiger.y = b.y;
+                    System.out.println("Tiger moved: " + startBox.getIndex() + "->" + newBox.getIndex());
+                    draggedTiger.x = newBox.x;
+                    draggedTiger.y = newBox.y;
                     startBox.setOccupied(false);
-                    b.setOccupied(true);
-
+                    newBox.setOccupied(true);
+                    goatTurn = true;
                 }
                 moved = true;
-                goatTurn = !goatTurn;
                 break;
             }
         }

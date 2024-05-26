@@ -3,10 +3,9 @@ import java.util.Random;
 
 public class Goat {
     public int x, y;
-    private int boxIndex, posOffset;
+    private final int posOffset;
 
     public Goat(int boxIndex) {
-        this.boxIndex = boxIndex;
         this.x = GameBoard.getBoxes().get(boxIndex).x;
         this.y = GameBoard.getBoxes().get(boxIndex).y;
         this.posOffset = new Random().nextInt(-10, 10);

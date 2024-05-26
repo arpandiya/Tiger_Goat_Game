@@ -85,22 +85,19 @@ public abstract class GameEngine implements KeyListener, MouseListener, MouseMot
         // Register a key event dispatcher to get a turn in handling all
         // key events, independent of which component currently has the focus
         KeyboardFocusManager.getCurrentKeyboardFocusManager()
-                .addKeyEventDispatcher(new KeyEventDispatcher() {
-                    @Override
-                    public boolean dispatchKeyEvent(KeyEvent e) {
-                        switch (e.getID()) {
-                            case KeyEvent.KEY_PRESSED:
-                                GameEngine.this.keyPressed(e);
-                                return false;
-                            case KeyEvent.KEY_RELEASED:
-                                GameEngine.this.keyReleased(e);
-                                return false;
-                            case KeyEvent.KEY_TYPED:
-                                GameEngine.this.keyTyped(e);
-                                return false;
-                            default:
-                                return false; // do not consume the event
-                        }
+                .addKeyEventDispatcher(e -> {
+                    switch (e.getID()) {
+                        case KeyEvent.KEY_PRESSED:
+                            GameEngine.this.keyPressed(e);
+                            return false;
+                        case KeyEvent.KEY_RELEASED:
+                            GameEngine.this.keyReleased(e);
+                            return false;
+                        case KeyEvent.KEY_TYPED:
+                            GameEngine.this.keyTyped(e);
+                            return false;
+                        default:
+                            return false; // do not consume the event
                     }
                 });
 
@@ -111,16 +108,15 @@ public abstract class GameEngine implements KeyListener, MouseListener, MouseMot
     }
 
     public void setWindowSize(final int width, final int height) {
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                mWidth = width;
-                mHeight = height;
-                // Resize the window
-                mPanel.setPreferredSize(new Dimension(width, height));
-                mPanel.invalidate();
-                mFrame.pack();
-            }
+        SwingUtilities.invokeLater(() -> {
+            mWidth = width;
+            mHeight = height;
+            // Resize the window
+            mPanel.setPreferredSize(new Dimension(width, height));
+            mPanel.invalidate();
+            mFrame.pack();
+            mFrame.setResizable(false);
+            mFrame.setExtendedState(JFrame.MAXIMIZED_BOTH);
         });
     }
 
