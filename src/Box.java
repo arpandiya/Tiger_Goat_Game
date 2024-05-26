@@ -18,13 +18,6 @@ public class Box {
         return false;
     }
 
-    public boolean occupiedByTiger() {
-        for (Tiger t: GameBoard.getTigers()) {
-            if (t.getBoxIndex() == index) return true;
-        }
-        return false;
-    }
-
     public boolean containsMouse(int mouseX, int mouseY, int boxSize) {
         return new Rectangle(x, y, boxSize, boxSize).contains(mouseX, mouseY);
     }
