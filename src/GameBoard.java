@@ -18,6 +18,7 @@ public class GameBoard extends GameEngine implements KeyListener, MouseListener 
     private static final int BOX_SIZE = 70;
 
     // Arrays
+    private static int GOATS_PLACED = 0;
     private static final int MAX_GOATS = 20;
     private static final ArrayList<Box> BOXES = new ArrayList<>(25);
     private static final ArrayList<Tiger> TIGERS = new ArrayList<>(4);
@@ -102,7 +103,7 @@ public class GameBoard extends GameEngine implements KeyListener, MouseListener 
         final HashMap<Integer, Integer[]> LEGAL_JUMPS = new HashMap<>();
         LEGAL_JUMPS.put(0, new Integer[]{2, 10, 12});
         LEGAL_JUMPS.put(1, new Integer[]{3, 11});
-        LEGAL_JUMPS.put(2, new Integer[]{0, 4, 12});
+        LEGAL_JUMPS.put(2, new Integer[]{0, 4, 10, 12, 14});
         LEGAL_JUMPS.put(3, new Integer[]{1, 13});
         LEGAL_JUMPS.put(4, new Integer[]{2, 12, 14});
         LEGAL_JUMPS.put(5, new Integer[]{7, 15});
@@ -200,9 +201,10 @@ public class GameBoard extends GameEngine implements KeyListener, MouseListener 
     public void mouseClicked(MouseEvent e) {
         for (Box b : BOXES) {
             if (b.containsMouse(e.getX(), e.getY(), BOX_SIZE)) {
-                if (goatTurn && b.getOccupant() == null && GOATS.size() < MAX_GOATS) {
+                if (goatTurn && b.getOccupant() == null && GOATS_PLACED < MAX_GOATS) {
                     GOATS.add(new Goat(BOXES.indexOf(b)));
                     goatTurn = false;
+                    GOATS_PLACED++;
                 }
             }
         }
