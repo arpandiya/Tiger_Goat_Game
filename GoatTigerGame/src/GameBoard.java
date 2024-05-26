@@ -26,6 +26,7 @@ public class GameBoard extends GameEngine implements KeyListener {
     static int trapCount;
 
     Image boardImg, tigerImg, goatImg;
+    AudioClip winingSound, wrongMoveSound, moveSound;
     HashMap<Integer, Integer[]> validPath;
 
     String goatIcon = "🐐";
@@ -36,6 +37,7 @@ public class GameBoard extends GameEngine implements KeyListener {
 
 
     ArrayList<Box> boxes;
+    ArrayList<Integer> trap;
 
     public Box getBoxById(int Id) {
         Box box = null;
@@ -93,12 +95,19 @@ public class GameBoard extends GameEngine implements KeyListener {
 
         validPath = new HashMap<>();
         initGameRules();
+        //load images
         boardImg = loadImage("GoatTigerGame/src/images/boardImg.png");
         tigerImg = loadImage("GoatTigerGame/src/images/tigerImg.png");
         goatImg = loadImage("GoatTigerGame/src/images/goatImg.png");
+
+        //load audio
+        winingSound = loadAudio("GoatTigerGame/src/audio/wining.wav");
+        wrongMoveSound = loadAudio("GoatTigerGame/src/audio/wrong_move.wav");
+        moveSound = loadAudio("GoatTigerGame/src/audio/move.wav");
         boxes = new ArrayList<>();
         goat = new Goat();
         tiger = new Tiger();
+        trap = new ArrayList<>();
 
         int id = 1;
         for(int y = 1; y < 6; y++) {
@@ -142,6 +151,7 @@ public class GameBoard extends GameEngine implements KeyListener {
     @Override
     public void update(double dt) {
         checkGameOver();
+
 
     }
 
@@ -226,6 +236,7 @@ public class GameBoard extends GameEngine implements KeyListener {
     public void checkGameOver() {
         if(goatEaten > 8 || trapCount >= 4) {
             gameOver = true;
+                playAudio(winingSound);
         }
     }
     @Override
@@ -274,12 +285,13 @@ public class GameBoard extends GameEngine implements KeyListener {
                         b.isGoatBox = true;
                         b.isEmpty = false;
                         goatPlaced+=1;
+                        playAudio(moveSound);
                     }
                 }
             }
 
         }
-        ArrayList<Integer> trap = new ArrayList<>();
+
         for (Box box : boxes) {
             if(box.isTigerBox) {
                 if(checkTrap(box)) {
@@ -322,6 +334,7 @@ public class GameBoard extends GameEngine implements KeyListener {
                             moveFrom.isEmpty = true;
                             b.isEmpty = false;
                             goatTurn = false;
+                            playAudio(moveSound);
                         }
                         if(moveFrom.isTigerBox && b.isEmpty) {
                             b.isTigerBox = true;
@@ -331,12 +344,14 @@ public class GameBoard extends GameEngine implements KeyListener {
                             b.isEmpty = false;
                             goatTurn = true;
                             eatGoat(moveFrom, b);
+                            playAudio(moveSound);
 
                             totalMoves++;
 
                         }
                     } else {
                         System.out.println("Not a valid move");
+                       // playAudio(wrongMoveSound);
                     }
 
                     System.out.println("Goat Turn: " + goatTurn);
