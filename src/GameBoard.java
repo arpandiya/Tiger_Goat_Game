@@ -33,7 +33,8 @@ public class GameBoard extends GameEngine implements MouseListener {
     private static Goat draggedGoat;
     private static Tiger draggedTiger;
     private static boolean draggingATile = false;
-    
+
+    // Game conditions
     private static int GOATS_PLACED = 0;
     private static int GOATS_KILLED = 0;
     private static final int MAX_GOATS = 20;
