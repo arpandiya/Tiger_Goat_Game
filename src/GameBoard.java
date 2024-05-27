@@ -95,7 +95,8 @@ public class GameBoard extends GameEngine implements MouseListener {
         else drawImage(TigerBackgroundImg, -WIDTH/2.0, -HEIGHT/2.0, WIDTH, HEIGHT);
         restoreLastTransform();
 
-        // Draw Game Over
+        // Draw Game Over 
+        // work on this!!
         if (gameOver) {
             changeColor(Color.BLACK);
             drawSolidRectangle(120, 300, 520, 120);
