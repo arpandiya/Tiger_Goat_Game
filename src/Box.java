@@ -12,20 +12,12 @@ public class Box {
     }
 
     public boolean occupiedByGoat() {
-        for (Goat g: GameBoard.getGoats()) {
-            if (g.getBoxIndex() == index) return true;
-        }
-        return false;
+        return occupant instanceof Goat;
     }
 
-    public boolean occupiedByTigers() {
-        for (Tiger t : GameBoard.getTigers()) {
-            if (t.getBoxIndex() == index) return true;
-        }
-        return false;
+    public boolean occupiedByTiger() {
+        return occupant instanceof Tiger;
     }
-
-
 
     public boolean containsMouse(int mouseX, int mouseY, int boxSize) {
         return new Rectangle(x, y, boxSize, boxSize).contains(mouseX, mouseY);
