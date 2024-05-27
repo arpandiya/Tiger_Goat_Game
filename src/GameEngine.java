@@ -587,7 +587,7 @@ public abstract class GameEngine implements KeyListener, MouseListener, MouseMot
     //-------------------------------------------------------
 
     // Class used to store an audio clip
-    public class AudioClip {
+    public static class AudioClip {
         // Format
         AudioFormat mFormat;
 
@@ -640,7 +640,7 @@ public abstract class GameEngine implements KeyListener, MouseListener, MouseMot
                 stream.read(mData);
             } catch(Exception exception) {
                 // Print Error
-                System.out.println("Error reading Audio File\n");
+                System.out.println("Error reading Audio File");
 
                 // Exit
                 System.exit(1);
@@ -664,7 +664,7 @@ public abstract class GameEngine implements KeyListener, MouseListener, MouseMot
             AudioClip clip = new AudioClip(audio);
 
             // Fix pauses and mixer issues when clip is first played
-            playAudio(clip,-60);
+            playAudio(clip,-80);
 
             // Return Audio Clip
             return clip;
@@ -682,7 +682,7 @@ public abstract class GameEngine implements KeyListener, MouseListener, MouseMot
         // Check audioClip for null
         if(audioClip == null) {
             // Print error message
-            System.out.println("Error: audioClip is null\n");
+            System.out.println("Error: audioClip is null");
 
             // Return
             return;
@@ -691,12 +691,9 @@ public abstract class GameEngine implements KeyListener, MouseListener, MouseMot
         try {
             // Create a Clip
             Clip clip = AudioSystem.getClip();
-            clip.addLineListener(new LineListener() {
-                @Override
-                public void update(LineEvent event) {
-                    if(event.getType().equals(LineEvent.Type.STOP)) {
-                        clip.close();
-                    }
+            clip.addLineListener(event -> {
+                if(event.getType().equals(LineEvent.Type.STOP)) {
+                    clip.close();
                 }
             });
             // Load data
@@ -706,7 +703,7 @@ public abstract class GameEngine implements KeyListener, MouseListener, MouseMot
             clip.start();
         } catch(Exception exception) {
             // Display Error Message
-            System.out.println("Error playing Audio Clip\n");
+            System.out.println("Error playing Audio Clip");
         }
     }
 
@@ -715,7 +712,7 @@ public abstract class GameEngine implements KeyListener, MouseListener, MouseMot
         // Check audioClip for null
         if(audioClip == null) {
             // Print error message
-            System.out.println("Error: audioClip is null\n");
+            System.out.println("Error: audioClip is null");
 
             // Return
             return;
@@ -724,12 +721,9 @@ public abstract class GameEngine implements KeyListener, MouseListener, MouseMot
         try {
             // Create a Clip
             Clip clip = AudioSystem.getClip();
-            clip.addLineListener(new LineListener() {
-                @Override
-                public void update(LineEvent event) {
-                    if(event.getType().equals(LineEvent.Type.STOP)) {
-                        clip.close();
-                    }
+            clip.addLineListener(event -> {
+                if(event.getType().equals(LineEvent.Type.STOP)) {
+                    clip.close();
                 }
             });
             // Load data
@@ -745,7 +739,7 @@ public abstract class GameEngine implements KeyListener, MouseListener, MouseMot
             clip.start();
         } catch(Exception exception) {
             // Display Error Message
-            System.out.println("Error: could not play Audio Clip\n");
+            System.out.println("Error: could not play Audio Clip");
         }
     }
 
@@ -755,7 +749,7 @@ public abstract class GameEngine implements KeyListener, MouseListener, MouseMot
         // Check audioClip for null
         if(audioClip == null) {
             // Print error message
-            System.out.println("Error: audioClip is null\n");
+            System.out.println("Error: audioClip is null");
 
             // Return
             return;
@@ -780,7 +774,7 @@ public abstract class GameEngine implements KeyListener, MouseListener, MouseMot
                 audioClip.setLoopClip(clip);
             } catch(Exception exception) {
                 // Display Error Message
-                System.out.println("Error: could not play Audio Clip\n");
+                System.out.println("Error: could not play Audio Clip");
             }
         }
 
@@ -796,7 +790,7 @@ public abstract class GameEngine implements KeyListener, MouseListener, MouseMot
         // Check audioClip for null
         if(audioClip == null) {
             // Print error message
-            System.out.println("Error: audioClip is null\n");
+            System.out.println("Error: audioClip is null");
 
             // Return
             return;
@@ -827,7 +821,7 @@ public abstract class GameEngine implements KeyListener, MouseListener, MouseMot
                 audioClip.setLoopClip(clip);
             } catch(Exception exception) {
                 // Display Error Message
-                System.out.println("Error: could not play Audio Clip\n");
+                System.out.println("Error: could not play Audio Clip");
             }
         }
 

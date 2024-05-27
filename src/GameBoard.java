@@ -1,14 +1,14 @@
 //https://docs.google.com/document/d/e/2PACX-1vSOmrJYAncRtGu2-jwqASUtNJWfECHw7ZeRrmU6yoQ3eUUhz_hXlLx8arDPqSiGXgfSX2oaxKzyxLqS/pub
 
+import javax.sound.sampled.AudioInputStream;
 import java.awt.*;
-import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 
-public class GameBoard extends GameEngine implements KeyListener, MouseListener {
+public class GameBoard extends GameEngine implements MouseListener {
 
     // Dimensions and locations
     private static final int WIDTH = (int)Toolkit.getDefaultToolkit().getScreenSize().getWidth();
@@ -18,16 +18,16 @@ public class GameBoard extends GameEngine implements KeyListener, MouseListener 
     private static final int BOX_SIZE = 70;
 
     // Arrays
-    private static int GOATS_PLACED = 0;
-    private static final int MAX_GOATS = 20;
     private static final ArrayList<Box> BOXES = new ArrayList<>(25);
     private static final ArrayList<Tiger> TIGERS = new ArrayList<>(4);
     private static final ArrayList<Goat> GOATS = new ArrayList<>(20);
+    private static final ArrayList<Tiger> TRAPPED_TIGERS = new ArrayList<>(4);
 
-    // Images
+    // Assets
     private static Image BoardImg, GoatImg, TigerImg, GoatBackgroundImg, TigerBackgroundImg;
-    //Audio
-    private static AudioClip backgroundMusic;
+    private static AudioClip ValidMove;
+    private static AudioClip InvalidMove;
+    private static AudioClip GameOver;
 
     // Dragging
     private static int mouseOffsetX, mouseOffsetY;
@@ -35,21 +35,29 @@ public class GameBoard extends GameEngine implements KeyListener, MouseListener 
     private static Goat draggedGoat;
     private static Tiger draggedTiger;
     private static boolean draggingATile = false;
-
+    
+    
+    private static int GOATS_PLACED = 0;
+    private static int GOATS_KILLED = 0;
+    private static final int MAX_GOATS = 20;
+    private static boolean GAME_OVER = false;
     private static boolean goatTurn = true;
 
     @Override
     public void init() {
         setWindowSize(WIDTH, HEIGHT);
 
-        BoardImg = loadImage("src/Images/boardImg.png");
-        GoatImg = loadImage("src/Images/goatImg.png");
-        TigerImg = loadImage("src/Images/tigerImg.png");
-        GoatBackgroundImg = loadImage("src/Images/goatBackgroundImg.png");
-        TigerBackgroundImg = loadImage("src/Images/tigerBackgroundImg.png");
+        BoardImg = loadImage("src/images/boardImg.png");
+        GoatImg = loadImage("src/images/goatImg.png");
+        TigerImg = loadImage("src/images/tigerImg.png");
+        GoatBackgroundImg = loadImage("src/images/goatBackgroundImg.png");
+        TigerBackgroundImg = loadImage("src/images/tigerBackgroundImg.png");
 
-        backgroundMusic = loadAudio("src/audio/background.wav");
-        startAudioLoop(backgroundMusic, 0.0001f);
+        ValidMove = loadAudio("src/audio/validMove.wav");
+        InvalidMove = loadAudio("src/audio/invalidMove.wav");
+        GameOver = loadAudio("src/audio/gameOver.wav");
+        AudioClip backgroundMusic = loadAudio("src/audio/background.wav");
+        startAudioLoop(backgroundMusic, -15f);
 
         // Add boxes
         for (int y = 0; y < 5; y++) {
@@ -63,16 +71,93 @@ public class GameBoard extends GameEngine implements KeyListener, MouseListener 
             }
         }
 
-        // Add tigers
         TIGERS.add(new Tiger(0));
         TIGERS.add(new Tiger(4));
         TIGERS.add(new Tiger(20));
         TIGERS.add(new Tiger(24));
     }
 
-    public void resetGame() { init(); }
+    @Override
+    public void update(double dt) {
+        if (GOATS_KILLED >= 9 || TRAPPED_TIGERS.size() == 4) {
+            GAME_OVER = true;
+            playAudio(GameOver);
+            resetGame();
+        }
+    }
 
-    // Returns valid neighbours of any given box
+    @Override
+    public void paintComponent() {
+        changeBackgroundColor(Color.WHITE);
+        clearBackground(WIDTH, HEIGHT);
+
+        // Draw Background
+        saveCurrentTransform();
+        translate(WIDTH/2.0, HEIGHT/2.0);
+        if (goatTurn) drawImage(GoatBackgroundImg, -WIDTH/2.0, -HEIGHT/2.0, WIDTH, HEIGHT);
+        else drawImage(TigerBackgroundImg, -WIDTH/2.0, -HEIGHT/2.0, WIDTH, HEIGHT);
+        restoreLastTransform();
+
+        // Draw Game Over
+        if (GAME_OVER) {
+            changeColor(Color.BLACK);
+            drawSolidRectangle(120, 300, 520, 120);
+
+            changeColor(Color.ORANGE);
+            drawText( 200, 360, "Game Over !", "", 60);
+
+            changeColor(Color.WHITE);
+            drawText( 240, 390, "Press Enter to restart!", "", 20);
+            return;
+        }
+
+        // Draw Board
+        saveCurrentTransform();
+        translate(BOARD_POS.getX(), BOARD_POS.getY());
+        drawImage(BoardImg, -BOARD_SIZE/2.0, -BOARD_SIZE/2.0, BOARD_SIZE, BOARD_SIZE);
+
+        // Draw Tiger Stats
+        changeColor(black);
+        translate(-BOARD_SIZE/2.0, -BOARD_SIZE/2.0 - 20);
+        drawText(0, 0, "GOATS KILLED:   " + GOATS_KILLED, "Queensides", 25);
+
+        // Draw Goat Stats
+        changeColor(white);
+        translate(BOARD_SIZE - 220, BOARD_SIZE + 70);
+        drawText(0, 0,"TIGERS TRAPPED:   " + TRAPPED_TIGERS.size(), "Queensides", 25);
+
+        changeColor(black);
+        drawText(-20, -BOARD_SIZE - 70,"Remaining Goats:   " + (MAX_GOATS - GOATS_PLACED), "Queensides", 25);
+        restoreLastTransform();
+
+        // Draw Goats
+        for (Goat g : GOATS) {
+            drawImage(GoatImg, g.x + g.getPosOffset(), g.y + g.getPosOffset(), BOX_SIZE, BOX_SIZE);
+        }
+
+        // Draw Tigers
+        for (Tiger t : TIGERS) {
+            drawImage(TigerImg, t.x + t.getPosOffset(), t.y + t.getPosOffset(), BOX_SIZE, BOX_SIZE);
+        }
+        
+
+
+    }
+
+    public void resetGame() {
+        TIGERS.clear();
+        GOATS.clear();
+        TRAPPED_TIGERS.clear();
+        GOATS_PLACED = 0;
+        GOATS_KILLED = 0;
+        GAME_OVER = false;
+
+        TIGERS.add(new Tiger(0));
+        TIGERS.add(new Tiger(4));
+        TIGERS.add(new Tiger(20));
+        TIGERS.add(new Tiger(24));
+    }
+
     public Integer[] getLegalMoves(int boxIndex) {
         final HashMap<Integer, Integer[]> LEGAL_MOVES = new HashMap<>();
         LEGAL_MOVES.put(0, new Integer[]{1, 5, 6});
@@ -135,70 +220,51 @@ public class GameBoard extends GameEngine implements KeyListener, MouseListener 
         return LEGAL_JUMPS.get(boxIndex);
     }
 
-//
-//    public boolean checkTrapped(Box b) {
-//        boolean isTrapped = true;
-//        Integer[] options = getLegalJumps(b.getIndex());
-//
-//        for (int id : options) {
-//            if (!BOXES.get(id).getOccupant() == null) {
-//                isTrapped = false;
-//            }
-//        }
-//        return isTrapped;
-//    }
+    public void checkTrappedTigers() {
+        for (Tiger t : TIGERS) {
+            Integer[] moveOptions = getLegalMoves(t.getBoxIndex());
+            Integer[] jumpOptions = getLegalJumps(t.getBoxIndex());
 
-    public void eatGoat(int from, int to) {
-        if (BOXES.get(to).getOccupant() != null) return;
+            boolean moveTrapped = true;
+            boolean jumpTrapped = true;
 
+            // Checking for moves
+            for (int id : moveOptions) {
+                if (BOXES.get(id).getOccupant() == null) {
+                    moveTrapped = false;
+                    TRAPPED_TIGERS.remove(t);
+                    break;
+                }
+            }
+            // Checking for jumps
+            for (int id : jumpOptions) {
+                if (BOXES.get(id).getOccupant() == null) {
+                    jumpTrapped = false;
+                    TRAPPED_TIGERS.remove(t);
+                    break;
+                }
+            }
+
+            if (moveTrapped && jumpTrapped) {
+                if (!TRAPPED_TIGERS.contains(t)) TRAPPED_TIGERS.add(t);
+            }
+        }
+    }
+
+    public boolean eatGoat(int from, int to) {
+        if (BOXES.get(to).getOccupant() != null) return false;
+
+        // The index of the jumped box has the index that's the average of the boxes on either side
         Box hoppedBox = BOXES.get((from + to) / 2);
 
-        System.out.println(hoppedBox.getIndex() + ": " + hoppedBox.getOccupant());
+        // If it's occupied by a goat
         if (hoppedBox.getOccupant() != null && hoppedBox.occupiedByGoat()) {
             GOATS.remove(hoppedBox.getOccupant());
             hoppedBox.setOccupant(null);
+            GOATS_KILLED++;
+            return true;
         }
-    }
-
-    @Override
-    public void update(double dt) {
-//        checkGameOver();
-    }
-
-    @Override
-    public void paintComponent() {
-        changeBackgroundColor(Color.WHITE);
-        clearBackground(WIDTH, HEIGHT);
-
-        // Draw Background
-        saveCurrentTransform();
-        translate(WIDTH/2.0, HEIGHT/2.0);
-        if (goatTurn) drawImage(GoatBackgroundImg, -WIDTH/2.0, -HEIGHT/2.0, WIDTH, HEIGHT);
-        else drawImage(TigerBackgroundImg, -WIDTH/2.0, -HEIGHT/2.0, WIDTH, HEIGHT);
-        restoreLastTransform();
-
-        // Draw Board
-        saveCurrentTransform();
-        translate(BOARD_POS.getX(), BOARD_POS.getY());
-        drawImage(BoardImg, -BOARD_SIZE/2.0, -BOARD_SIZE/2.0, BOARD_SIZE, BOARD_SIZE);
-        restoreLastTransform();
-
-        // Draw Boxes
-//        for (Box b : BOXES) {
-//            if (b.getOccupant() != null) changeColor(Color.red);
-//            else changeColor(Color.green);
-//            drawRectangle(b.x, b.y, BOX_SIZE, BOX_SIZE);
-//        }
-
-        // Draw Goats
-        for (Goat g : GOATS) {
-            drawImage(GoatImg, g.x + g.getPosOffset(), g.y + g.getPosOffset(), BOX_SIZE, BOX_SIZE);
-        }
-
-        // Draw Tigers
-        for (Tiger t : TIGERS) {
-            drawImage(TigerImg, t.x + t.getPosOffset(), t.y + t.getPosOffset(), BOX_SIZE, BOX_SIZE);
-        }
+        return false;
     }
 
     // Click to add a tile
@@ -207,9 +273,11 @@ public class GameBoard extends GameEngine implements KeyListener, MouseListener 
         for (Box b : BOXES) {
             if (b.containsMouse(e.getX(), e.getY(), BOX_SIZE)) {
                 if (goatTurn && b.getOccupant() == null && GOATS_PLACED < MAX_GOATS) {
+                    playAudio(ValidMove);
                     GOATS.add(new Goat(BOXES.indexOf(b)));
                     goatTurn = false;
                     GOATS_PLACED++;
+                    checkTrappedTigers();
                 }
             }
         }
@@ -250,7 +318,7 @@ public class GameBoard extends GameEngine implements KeyListener, MouseListener 
         int y = e.getY() - mouseOffsetY;
 
         if (draggingATile) {
-            if (draggedGoat != null && goatTurn) {
+            if (draggedGoat != null && goatTurn && GOATS_PLACED == MAX_GOATS) {
                 draggedGoat.x = x;
                 draggedGoat.y = y;
             }
@@ -293,30 +361,32 @@ public class GameBoard extends GameEngine implements KeyListener, MouseListener 
 
             // If tile released on box, move it there
             if (newBox.containsMouse(e.getX(), e.getY(), BOX_SIZE)) {
-                if (draggedGoat != null && goatTurn) {
+                if (draggedGoat != null && goatTurn && GOATS_PLACED == MAX_GOATS) {
                     if (!Arrays.asList(getLegalMoves(startBox.getIndex())).contains(newBox.getIndex())) continue; // Not a valid move
                     draggedGoat.moveBox(startBox, newBox);
                     goatTurn = false;
                     moved = true;
-//                    checkTrapped();
+                    playAudio(ValidMove);
+                    checkTrappedTigers();
                 } else if (draggedTiger != null && !goatTurn) {
-                    // Tiger jumped a goat
-                    if (Arrays.asList(getLegalJumps(startBox.getIndex())).contains(newBox.getIndex())) {
-                        try {
-                            eatGoat(startBox.getIndex(), newBox.getIndex());
-                        } catch (IndexOutOfBoundsException ignored) {}
-
-                        draggedTiger.moveBox(startBox, newBox);
-                        goatTurn = true;
-                        moved = true;
-                    }
                     // Tiger moved normally
-                    else if (Arrays.asList(getLegalMoves(startBox.getIndex())).contains(newBox.getIndex())) {
+                    if (Arrays.asList(getLegalMoves(startBox.getIndex())).contains(newBox.getIndex())) {
                         draggedTiger.moveBox(startBox, newBox);
                         goatTurn = true;
                         moved = true;
+                        playAudio(ValidMove);
                     }
-
+                    // Tiger jumped a goat
+                    else if (Arrays.asList(getLegalJumps(startBox.getIndex())).contains(newBox.getIndex())) {
+                        try {
+                            if (!eatGoat(startBox.getIndex(), newBox.getIndex())) continue;
+                            draggedTiger.moveBox(startBox, newBox);
+                            goatTurn = true;
+                            moved = true;
+                            playAudio(ValidMove);
+                            checkTrappedTigers();
+                        } catch (IndexOutOfBoundsException ignored) {}
+                    }
                 }
                 break;
             }
@@ -325,8 +395,10 @@ public class GameBoard extends GameEngine implements KeyListener, MouseListener 
         if (!moved) {
             if (draggedGoat != null) {
                 draggedGoat.moveBox(startBox, startBox);
+                playAudio(InvalidMove, -15);
             } else if (draggedTiger != null) {
                 draggedTiger.moveBox(startBox, startBox);
+                playAudio(InvalidMove, -15);
             }
         }
 
@@ -336,7 +408,6 @@ public class GameBoard extends GameEngine implements KeyListener, MouseListener 
     }
 
     public static ArrayList<Goat> getGoats() { return GOATS; }
-    public static ArrayList<Tiger> getTigers() { return TIGERS; }
     public static ArrayList<Box> getBoxes() { return BOXES; }
 
     public static void main(String[] args) {
