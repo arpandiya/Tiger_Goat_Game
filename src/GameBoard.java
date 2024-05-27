@@ -26,6 +26,8 @@ public class GameBoard extends GameEngine implements KeyListener, MouseListener 
 
     // Images
     private static Image BoardImg, GoatImg, TigerImg, GoatBackgroundImg, TigerBackgroundImg;
+    //Audio
+    private static AudioClip backgroundMusic;
 
     // Dragging
     private static int mouseOffsetX, mouseOffsetY;
@@ -45,6 +47,9 @@ public class GameBoard extends GameEngine implements KeyListener, MouseListener 
         TigerImg = loadImage("src/Images/tigerImg.png");
         GoatBackgroundImg = loadImage("src/Images/goatBackgroundImg.png");
         TigerBackgroundImg = loadImage("src/Images/tigerBackgroundImg.png");
+
+        backgroundMusic = loadAudio("src/audio/background.wav");
+        startAudioLoop(backgroundMusic, 0.0001f);
 
         // Add boxes
         for (int y = 0; y < 5; y++) {
