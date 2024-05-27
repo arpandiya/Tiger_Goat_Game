@@ -25,9 +25,7 @@ public class GameBoard extends GameEngine implements MouseListener {
 
     // Assets
     private static Image BoardImg, GoatImg, TigerImg, GoatBackgroundImg, TigerBackgroundImg;
-    private static AudioClip ValidMove;
-    private static AudioClip InvalidMove;
-    private static AudioClip GameOver;
+    private static AudioClip ValidMove, InvalidMove, GameOver;
 
     // Dragging
     private static int mouseOffsetX, mouseOffsetY;
