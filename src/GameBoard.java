@@ -236,9 +236,12 @@ public class GameBoard extends GameEngine implements MouseListener {
             // Checking for jumps
             for (int id : jumpOptions) {
                 if (BOXES.get(id).getOccupant() == null) {
-                    jumpTrapped = false;
-                    TRAPPED_TIGERS.remove(t);
-                    break;
+                    // Trap tiger if tiger is adjacent
+                    if (BOXES.get(abs(id + t.getBoxIndex()) / 2).occupiedByGoat()) {
+                        jumpTrapped = false;
+                        TRAPPED_TIGERS.remove(t);
+                        break;
+                    }
                 }
             }
 
