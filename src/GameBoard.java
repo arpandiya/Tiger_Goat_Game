@@ -34,11 +34,10 @@ public class GameBoard extends GameEngine implements MouseListener {
     private static Tiger draggedTiger;
     private static boolean draggingATile = false;
     
-    
     private static int GOATS_PLACED = 0;
     private static int GOATS_KILLED = 0;
     private static final int MAX_GOATS = 20;
-    private static boolean GAME_OVER = false;
+    private static boolean gameOver = false;
     private static boolean goatTurn = true;
 
     @Override
@@ -78,7 +77,7 @@ public class GameBoard extends GameEngine implements MouseListener {
     @Override
     public void update(double dt) {
         if (GOATS_KILLED >= 9 || TRAPPED_TIGERS.size() == 4) {
-            GAME_OVER = true;
+            gameOver = true;
             playAudio(GameOver);
             resetGame();
         }
@@ -97,7 +96,7 @@ public class GameBoard extends GameEngine implements MouseListener {
         restoreLastTransform();
 
         // Draw Game Over
-        if (GAME_OVER) {
+        if (gameOver) {
             changeColor(Color.BLACK);
             drawSolidRectangle(120, 300, 520, 120);
 
@@ -137,9 +136,6 @@ public class GameBoard extends GameEngine implements MouseListener {
         for (Tiger t : TIGERS) {
             drawImage(TigerImg, t.x + t.getPosOffset(), t.y + t.getPosOffset(), BOX_SIZE, BOX_SIZE);
         }
-        
-
-
     }
 
     public void resetGame() {
@@ -148,7 +144,7 @@ public class GameBoard extends GameEngine implements MouseListener {
         TRAPPED_TIGERS.clear();
         GOATS_PLACED = 0;
         GOATS_KILLED = 0;
-        GAME_OVER = false;
+        gameOver = false;
 
         TIGERS.add(new Tiger(0));
         TIGERS.add(new Tiger(4));
@@ -285,7 +281,7 @@ public class GameBoard extends GameEngine implements MouseListener {
     @Override
     public void mousePressed(MouseEvent e) {
         for (Goat g : GOATS) {
-            if (g.containsMouse(e.getX(), e.getY(), BOX_SIZE)) {
+            if (g.containsMouse(e.getX(), e.getY(), BOX_SIZE) && goatTurn) {
                 mouseOffsetX = e.getX() - g.x;
                 mouseOffsetY = e.getY() - g.y;
                 draggedGoat = g;
@@ -294,7 +290,7 @@ public class GameBoard extends GameEngine implements MouseListener {
         }
 
         for (Tiger t : TIGERS) {
-            if (t.containsMouse(e.getX(), e.getY(), BOX_SIZE)) {
+            if (t.containsMouse(e.getX(), e.getY(), BOX_SIZE) && !goatTurn) {
                 mouseOffsetX =  e.getX() - t.x;
                 mouseOffsetY = e.getY() - t.y;
                 draggedTiger = t;
@@ -328,7 +324,7 @@ public class GameBoard extends GameEngine implements MouseListener {
         }
 
         for (Goat g : GOATS) {
-            if (g.containsMouse(e.getX(), e.getY(), BOX_SIZE)) {
+            if (g.containsMouse(e.getX(), e.getY(), BOX_SIZE) && goatTurn) {
                 draggingATile = true;
                 draggedGoat = g;
                 draggedGoat.x = x;
@@ -338,7 +334,7 @@ public class GameBoard extends GameEngine implements MouseListener {
         }
 
         for (Tiger t : TIGERS) {
-            if (t.containsMouse(e.getX(), e.getY(), BOX_SIZE)) {
+            if (t.containsMouse(e.getX(), e.getY(), BOX_SIZE) && !goatTurn) {
                 draggingATile = true;
                 draggedTiger = t;
                 draggedTiger.x = x;
