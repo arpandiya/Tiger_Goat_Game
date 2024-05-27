@@ -4,6 +4,7 @@ import javax.sound.sampled.AudioInputStream;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -302,7 +303,13 @@ public class GameBoard extends GameEngine implements MouseListener {
 
         for (Box b : BOXES) {
             if (b.containsMouse(e.getX(), e.getY(), BOX_SIZE)) {
-                startBox = b;
+                if (b.occupiedByGoat() && goatTurn || b.occupiedByTigers() && !goatTurn){
+                    startBox = b;
+                }
+                else{
+                    draggingATile = false;
+                    startBox = null;
+                }
             }
         }
     }
@@ -312,7 +319,7 @@ public class GameBoard extends GameEngine implements MouseListener {
     public void mouseDragged(MouseEvent e) {
         int x = e.getX() - mouseOffsetX;
         int y = e.getY() - mouseOffsetY;
-
+        if (startBox == null) {return;}
         if (draggingATile) {
             if (draggedGoat != null && goatTurn && GOATS_PLACED == MAX_GOATS) {
                 draggedGoat.x = x;
@@ -327,7 +334,7 @@ public class GameBoard extends GameEngine implements MouseListener {
 
         for (Goat g : GOATS) {
             if (g.containsMouse(e.getX(), e.getY(), BOX_SIZE) && goatTurn) {
-                draggingATile = true;
+                //draggingATile = true;
                 draggedGoat = g;
                 draggedGoat.x = x;
                 draggedGoat.y = y;
@@ -337,7 +344,7 @@ public class GameBoard extends GameEngine implements MouseListener {
 
         for (Tiger t : TIGERS) {
             if (t.containsMouse(e.getX(), e.getY(), BOX_SIZE) && !goatTurn) {
-                draggingATile = true;
+                //draggingATile = true;
                 draggedTiger = t;
                 draggedTiger.x = x;
                 draggedTiger.y = y;
@@ -405,6 +412,7 @@ public class GameBoard extends GameEngine implements MouseListener {
 
     public static ArrayList<Goat> getGoats() { return GOATS; }
     public static ArrayList<Box> getBoxes() { return BOXES; }
+    public static ArrayList<Tiger> getTigers() { return TIGERS; }
 
     public static void main(String[] args) {
         createGame(new GameBoard(), 60);
