@@ -330,6 +330,7 @@ public class GameBoard extends GameEngine implements MouseListener {
     // Intialising a drag
     @Override
     public void mousePressed(MouseEvent e) {
+        if (menu){return;}
         for (Goat g : GOATS) {
             if (g.containsMouse(e.getX(), e.getY(), BOX_SIZE) && goatTurn) {
                 mouseOffsetX = e.getX() - g.x;
@@ -364,6 +365,7 @@ public class GameBoard extends GameEngine implements MouseListener {
     // Drag a tile
     @Override
     public void mouseDragged(MouseEvent e) {
+        if (menu){return;}
         int x = e.getX() - mouseOffsetX;
         int y = e.getY() - mouseOffsetY;
         if (startBox == null) {return;}
@@ -404,6 +406,7 @@ public class GameBoard extends GameEngine implements MouseListener {
     @Override
     public void mouseReleased(MouseEvent e) {
         if (startBox == null) return;
+        if (menu){return;}
         boolean moved = false;
 
         for (Box newBox : BOXES) {
