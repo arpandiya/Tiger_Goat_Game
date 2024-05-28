@@ -428,6 +428,7 @@ public class GameBoard extends GameEngine implements MouseListener {
                         goatTurn = true;
                         moved = true;
                         playAudio(ValidMove);
+                        checkTrappedTigers();
                     }
                     // Tiger jumped a goat
                     else if (Arrays.asList(getLegalJumps(startBox.getIndex())).contains(newBox.getIndex())) {
