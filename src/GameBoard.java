@@ -113,7 +113,7 @@ public class GameBoard extends GameEngine implements MouseListener {
                 drawText( 200, 360, "Game Over !", "", 60);
 
                 changeColor(Color.WHITE);
-                drawText( 240, 390, "Press Enter to restart!", "", 20);
+                drawText( 240, 390, "Press Reset to start a new game!", "", 20);
                 return;
             }
 
@@ -478,10 +478,8 @@ public class GameBoard extends GameEngine implements MouseListener {
     @Override
     public void keyPressed(KeyEvent e){
         if (e.getKeyCode() == KeyEvent.VK_ESCAPE){ //Toggles menu
-            menuShown = !menuShown;
-        } else if (e.getKeyCode() == KeyEvent.VK_ENTER) { //Resets game
-            resetGame();
-        }
+            menuShown = !menuShown;}
+
     }
 
     public static ArrayList<Box> getBoxes() { return BOXES; }
