@@ -25,9 +25,10 @@ public class GameBoard extends GameEngine implements MouseListener {
     private static final ArrayList<Tiger> TRAPPED_TIGERS = new ArrayList<>(4);
 
     // Menu components
-    private static final ArrayList<MenuButton> MENU_BUTTONS = new ArrayList<>(4);
+    private static final ArrayList<MenuButton> MENU_BUTTONS = new ArrayList<>();
     private static final int MENU_BUTTON_HEIGHT = 150, MENU_BUTTON_WIDTH = 400, MENU_BUTTON_GAP = 70;
     private static final int buttonStartY = 275;
+    private static final String[] options = new String[] {"Play", "Rules", "Credits", "Quit"};
 
     // Assets
     private static Image BoardImg, GoatImg, TigerImg, GoatBackgroundImg, TigerBackgroundImg, ButtonImg;
@@ -44,7 +45,7 @@ public class GameBoard extends GameEngine implements MouseListener {
     private static int GOATS_PLACED = 0;
     private static int GOATS_KILLED = 0;
     private static final int MAX_GOATS = 20;
-    private static boolean gameOver = false;
+    private static boolean gameOver = true;
     private static boolean goatTurn = true;
     private static boolean menuShown = true;
 
@@ -75,7 +76,6 @@ public class GameBoard extends GameEngine implements MouseListener {
         TIGERS.add(new Tiger(24));
 
         // Add menu buttons
-        final String[] options = new String[] {"Play", "Rules", "Credits", "Quit"};
         for (int i = 0; i < options.length; i++) {
             MENU_BUTTONS.add(new MenuButton(WIDTH/2, buttonStartY + i*(MENU_BUTTON_GAP + MENU_BUTTON_HEIGHT), options[i]));
         }
@@ -95,6 +95,11 @@ public class GameBoard extends GameEngine implements MouseListener {
         changeBackgroundColor(Color.WHITE);
         clearBackground(WIDTH, HEIGHT);
 
+        // If the window gets moved around hovering will still work
+        PointerInfo mouse = MouseInfo.getPointerInfo();
+        Point pos = new Point(mouse.getLocation());
+        SwingUtilities.convertPointFromScreen(pos, getWindow());
+
         // Draw Background
         saveCurrentTransform();
         translate(WIDTH/2.0, HEIGHT/2.0);
@@ -113,7 +118,7 @@ public class GameBoard extends GameEngine implements MouseListener {
                 drawText( 200, 360, "Game Over !", "", 60);
 
                 changeColor(Color.WHITE);
-                drawText( 240, 390, "Press Reset to start a new game!", "", 20);
+                drawText( 240, 390, "Press Enter to restart!", "", 20);
                 return;
             }
 
@@ -150,23 +155,14 @@ public class GameBoard extends GameEngine implements MouseListener {
                 drawImage(ButtonImg, b.x - MENU_BUTTON_WIDTH /2.0, b.y, MENU_BUTTON_WIDTH, MENU_BUTTON_HEIGHT);
 
                 saveCurrentTransform();
-                // If the window gets moved around hovering will still work
-                PointerInfo mouse = MouseInfo.getPointerInfo();
-                Point pos = new Point(mouse.getLocation());
-                SwingUtilities.convertPointFromScreen(pos, getWindow());
-
-                if (b.containsMouse(pos.getX(), pos.getY(), MENU_BUTTON_WIDTH, MENU_BUTTON_HEIGHT)) {
-                    changeColor(white);
-                }
-                else changeColor(Color.lightGray);
-
+                changeColor(b.containsMouse(pos.getX(), pos.getY(), MENU_BUTTON_WIDTH, MENU_BUTTON_HEIGHT) ? white : Color.lightGray);
                 drawText(b.x - 120, b.y + 10 + MENU_BUTTON_HEIGHT /2.0, b.option, "Queensides", 50);
                 restoreLastTransform();
             }
         }
     }
 
-    public void boxGeneration(){
+    public void boxGeneration() {
         for (int y = 0; y < 5; y++) {
             for (int x = 0; x < 5; x++) {
                 BOXES.add(new Box(
@@ -180,7 +176,6 @@ public class GameBoard extends GameEngine implements MouseListener {
     }
 
     public void resetGame() {
-        goatTurn = true;
         BOXES.clear();
         boxGeneration();
 
@@ -189,7 +184,7 @@ public class GameBoard extends GameEngine implements MouseListener {
         TRAPPED_TIGERS.clear();
         GOATS_PLACED = 0;
         GOATS_KILLED = 0;
-        gameOver = false;
+        goatTurn = true;
 
         TIGERS.add(new Tiger(0));
         TIGERS.add(new Tiger(4));
@@ -310,28 +305,38 @@ public class GameBoard extends GameEngine implements MouseListener {
 
     @Override
     public void mouseClicked(MouseEvent e) {
-        // Menu buttons
-        for (MenuButton b : MENU_BUTTONS) {
-            if (b.containsMouse(e.getX(), e.getY(), MENU_BUTTON_WIDTH, MENU_BUTTON_HEIGHT)) {
-                if (b.option.equals("Play")) {
-                    gameOver = false;
-                    menuShown = false;
-                    resetGame();
+        if (menuShown) {
+            // Menu buttons
+            for (MenuButton b : MENU_BUTTONS) {
+                if (b.containsMouse(e.getX(), e.getY(), MENU_BUTTON_WIDTH, MENU_BUTTON_HEIGHT)) {
+                    switch (b.option) {
+                        case "Reset":
+                            resetGame();
+                            menuShown = false;
+                            break;
+                        case "Play":
+                            MENU_BUTTONS.getFirst().option = "Reset";
+                            gameOver = false;
+                            menuShown = false;
+                            break;
+                        case "Quit":
+                            System.exit(0);
+                    }
                 }
             }
         }
 
-        if (menuShown) return;
-
-        // Adding goats
-        for (Box b : BOXES) {
-            if (b.containsMouse(e.getX(), e.getY(), BOX_SIZE)) {
-                if (goatTurn && b.getOccupant() == null && GOATS_PLACED < MAX_GOATS) {
-                    playAudio(ValidMove);
-                    GOATS.add(new Goat(BOXES.indexOf(b)));
-                    goatTurn = false;
-                    GOATS_PLACED++;
-                    checkTrappedTigers();
+        if (!menuShown) {
+            // Adding goats
+            for (Box b : BOXES) {
+                if (b.containsMouse(e.getX(), e.getY(), BOX_SIZE)) {
+                    if (goatTurn && b.getOccupant() == null && GOATS_PLACED < MAX_GOATS) {
+                        playAudio(ValidMove);
+                        GOATS.add(new Goat(BOXES.indexOf(b)));
+                        goatTurn = false;
+                        GOATS_PLACED++;
+                        checkTrappedTigers();
+                    }
                 }
             }
         }
@@ -476,10 +481,10 @@ public class GameBoard extends GameEngine implements MouseListener {
     }
 
     @Override
-    public void keyPressed(KeyEvent e){
-        if (e.getKeyCode() == KeyEvent.VK_ESCAPE){ //Toggles menu
-            menuShown = !menuShown;}
-
+    public void keyPressed(KeyEvent e) {
+        if (e.getKeyCode() == KeyEvent.VK_ESCAPE && !gameOver){
+            menuShown = !menuShown;
+        }
     }
 
     public static ArrayList<Box> getBoxes() { return BOXES; }
