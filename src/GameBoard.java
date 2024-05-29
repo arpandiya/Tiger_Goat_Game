@@ -2,6 +2,7 @@
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.ArrayList;
@@ -65,16 +66,7 @@ public class GameBoard extends GameEngine implements MouseListener {
         startAudioLoop(backgroundMusic, -15f);
 
         // Add boxes
-        for (int y = 0; y < 5; y++) {
-            for (int x = 0; x < 5; x++) {
-                BOXES.add(new Box(
-                        //     Spacing              Centre the box            Relative to board         (the 0.82x is to account for the game boards border)
-                        x * (int)(BOARD_SIZE*0.82/4) - BOX_SIZE/2 + (int)(BOARD_POS.getX()-BOARD_SIZE*0.82/2),
-                        y * (int)(BOARD_SIZE*0.82/4) - BOX_SIZE/2 + (int)(BOARD_POS.getY()-BOARD_SIZE*0.82/2),
-                        BOXES.size()
-                ));
-            }
-        }
+        boxGeneration();
 
         // Add tigers
         TIGERS.add(new Tiger(0));
@@ -174,7 +166,23 @@ public class GameBoard extends GameEngine implements MouseListener {
         }
     }
 
+    public void boxGeneration(){
+        for (int y = 0; y < 5; y++) {
+            for (int x = 0; x < 5; x++) {
+                BOXES.add(new Box(
+                        //     Spacing              Centre the box            Relative to board         (the 0.82x is to account for the game boards border)
+                        x * (int)(BOARD_SIZE*0.82/4) - BOX_SIZE/2 + (int)(BOARD_POS.getX()-BOARD_SIZE*0.82/2),
+                        y * (int)(BOARD_SIZE*0.82/4) - BOX_SIZE/2 + (int)(BOARD_POS.getY()-BOARD_SIZE*0.82/2),
+                        BOXES.size()
+                ));
+            }
+        }
+    }
+
     public void resetGame() {
+        BOXES.clear();
+        boxGeneration();
+
         TIGERS.clear();
         GOATS.clear();
         TRAPPED_TIGERS.clear();
@@ -307,6 +315,7 @@ public class GameBoard extends GameEngine implements MouseListener {
                 if (b.option.equals("Play")) {
                     gameOver = false;
                     menuShown = false;
+                    resetGame();
                 }
             }
         }
@@ -463,6 +472,13 @@ public class GameBoard extends GameEngine implements MouseListener {
         draggingATile = false;
         draggedGoat = null;
         draggedTiger = null;
+    }
+
+    @Override
+    public void keyPressed(KeyEvent e){
+        if (e.getKeyCode() == KeyEvent.VK_ESCAPE){
+            menuShown = !menuShown;
+        }
     }
 
     public static ArrayList<Box> getBoxes() { return BOXES; }
