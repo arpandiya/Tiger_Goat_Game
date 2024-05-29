@@ -35,6 +35,7 @@ public class GameBoard extends GameEngine implements MouseListener {
 
     // Assets
     private static Image BoardImg, GoatImg, TigerImg, GoatBackgroundImg, TigerBackgroundImg, ButtonImg, MutedImg, UnmutedImg;
+    private static Image TigerWinImg, GoatWinImg;
     private static AudioClip ValidMove, InvalidMove, GameOver, BackgroundMusic;
 
     // Dragging
@@ -50,7 +51,7 @@ public class GameBoard extends GameEngine implements MouseListener {
     private static final int MAX_GOATS = 20;
     private static boolean gameOver = true;
     private static boolean goatTurn = true;
-    private static boolean menuShown = true;
+    private static boolean menuShown = true, winSoundPlayed = true;
 
     @Override
     public void init() {
@@ -64,6 +65,9 @@ public class GameBoard extends GameEngine implements MouseListener {
         ButtonImg = loadImage("src/images/buttonImg.png");
         MutedImg = loadImage("src/images/mutedImg.png");
         UnmutedImg = loadImage("src/images/unmutedImg.png");
+        TigerWinImg = loadImage("src/images/tigerWin.png");
+        GoatWinImg = loadImage("src/images/goatWin.png");
+
 
         ValidMove = loadAudio("src/audio/validMove.wav");
         InvalidMove = loadAudio("src/audio/invalidMove.wav");
@@ -90,8 +94,10 @@ public class GameBoard extends GameEngine implements MouseListener {
     public void update(double dt) {
         if (GOATS_KILLED >= 9 || TRAPPED_TIGERS.size() == 4) {
             gameOver = true;
-            playAudio(GameOver);
-            resetGame();
+            if (!winSoundPlayed){
+                playAudio(GameOver);
+                winSoundPlayed = true;
+            }
         }
     }
 
@@ -113,21 +119,7 @@ public class GameBoard extends GameEngine implements MouseListener {
         restoreLastTransform();
 
         if (!menuShown){
-            // Draw Game Over
-            // work on this!!
-            if (gameOver) {
-                changeColor(Color.BLACK);
-                drawSolidRectangle(120, 300, 520, 120);
-
-                changeColor(Color.ORANGE);
-                drawText( 200, 360, "Game Over !", "", 60);
-
-                changeColor(Color.WHITE);
-                drawText( 240, 390, "Press Enter to restart!", "", 20);
-                return;
-            }
-
-            // Draw Board
+             // Draw Board
             saveCurrentTransform();
             translate(BOARD_POS.getX(), BOARD_POS.getY());
             drawImage(BoardImg, -BOARD_SIZE/2.0, -BOARD_SIZE/2.0, BOARD_SIZE, BOARD_SIZE);
@@ -168,6 +160,28 @@ public class GameBoard extends GameEngine implements MouseListener {
 
         // Draw Background Music Icon
         drawImage(bgMuted ? MutedImg : UnmutedImg, iconPos.getX(), iconPos.getY(), iconSize, iconSize);
+
+        // Draw Game Over
+        // work on this!!
+        if (gameOver) {
+//                changeColor(Color.BLACK);
+//                drawSolidRectangle(120, 300, 520, 120);
+//
+//                changeColor(Color.ORANGE);
+//                drawText( 200, 360, "Game Over !", "", 60);
+//
+//                changeColor(Color.WHITE);
+//                drawText( 240, 390, "Press Enter to restart!", "", 20);
+//                return;
+            saveCurrentTransform();
+            translate(BOARD_POS.getX(), BOARD_POS.getY());
+            if (GOATS_KILLED >= 9){ //tiger win
+                drawImage(TigerWinImg, -BOARD_SIZE/2, -BOARD_SIZE/2, BOARD_SIZE, BOARD_SIZE/2);
+            } else if (TRAPPED_TIGERS.size() == 4) { //Goat win
+                drawImage(GoatWinImg, -BOARD_SIZE/2, -BOARD_SIZE/2, BOARD_SIZE, BOARD_SIZE/2);
+            }
+            restoreLastTransform();
+        }
     }
 
     public void boxGeneration() {
@@ -193,6 +207,7 @@ public class GameBoard extends GameEngine implements MouseListener {
         GOATS_PLACED = 0;
         GOATS_KILLED = 0;
         goatTurn = true;
+        winSoundPlayed = false;
 
         TIGERS.add(new Tiger(0));
         TIGERS.add(new Tiger(4));
@@ -313,6 +328,11 @@ public class GameBoard extends GameEngine implements MouseListener {
 
     @Override
     public void mouseClicked(MouseEvent e) {
+        if(gameOver){
+            gameOver = false;
+            menuShown = true;
+            resetGame();
+        }
         if (menuShown) {
             // Menu buttons
             for (MenuButton b : MENU_BUTTONS) {
