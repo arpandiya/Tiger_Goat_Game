@@ -16,7 +16,7 @@ public class GameBoard extends GameEngine implements MouseListener {
     private static final int HEIGHT = (int)Toolkit.getDefaultToolkit().getScreenSize().getHeight();
     private static final Point BOARD_POS = new Point(WIDTH/2, HEIGHT/2);
     private static final int BOARD_SIZE = HEIGHT/2;
-    private static final int BOX_SIZE = 70;
+    private static final int BOX_SIZE = BOARD_SIZE/10;
 
     // Arrays
     private static final ArrayList<Box> BOXES = new ArrayList<>(25);
@@ -26,13 +26,16 @@ public class GameBoard extends GameEngine implements MouseListener {
 
     // Menu components
     private static final ArrayList<MenuButton> MENU_BUTTONS = new ArrayList<>();
-    private static final int MENU_BUTTON_HEIGHT = 150, MENU_BUTTON_WIDTH = 400, MENU_BUTTON_GAP = 70;
-    private static final int buttonStartY = 275;
-    final String[] options = new String[] {"Play", "Rules", "Credits", "Quit"};
+    private static final int MENU_BUTTON_HEIGHT = HEIGHT/10, MENU_BUTTON_WIDTH = WIDTH/6, MENU_BUTTON_GAP = 20;
+    private static final int buttonStartY = HEIGHT/3;
+    private static final String[] MENU_OPTIONS = new String[] {"Play", "Rules", "Credits", "Quit"};
+    private static boolean bgMuted = false;
+    private static final int iconSize = 70;
+    private static final Point iconPos = new Point(20, HEIGHT - iconSize - 40);
 
     // Assets
-    private static Image BoardImg, GoatImg, TigerImg, GoatBackgroundImg, TigerBackgroundImg, ButtonImg;
-    private static AudioClip ValidMove, InvalidMove, GameOver;
+    private static Image BoardImg, GoatImg, TigerImg, GoatBackgroundImg, TigerBackgroundImg, ButtonImg, MutedImg, UnmutedImg;
+    private static AudioClip ValidMove, InvalidMove, GameOver, BackgroundMusic;
 
     // Dragging
     private static int mouseOffsetX, mouseOffsetY;
@@ -59,12 +62,14 @@ public class GameBoard extends GameEngine implements MouseListener {
         GoatBackgroundImg = loadImage("src/images/goatBackgroundImg.png");
         TigerBackgroundImg = loadImage("src/images/tigerBackgroundImg.png");
         ButtonImg = loadImage("src/images/buttonImg.png");
+        MutedImg = loadImage("src/images/mutedImg.png");
+        UnmutedImg = loadImage("src/images/unmutedImg.png");
 
         ValidMove = loadAudio("src/audio/validMove.wav");
         InvalidMove = loadAudio("src/audio/invalidMove.wav");
         GameOver = loadAudio("src/audio/gameOver.wav");
-        AudioClip backgroundMusic = loadAudio("src/audio/background.wav");
-        startAudioLoop(backgroundMusic, -15f);
+        BackgroundMusic = loadAudio("src/audio/background.wav");
+        startAudioLoop(BackgroundMusic, -15f);
 
         // Add boxes
         boxGeneration();
@@ -76,8 +81,8 @@ public class GameBoard extends GameEngine implements MouseListener {
         TIGERS.add(new Tiger(24));
 
         // Add menu buttons
-        for (int i = 0; i < options.length; i++) {
-            MENU_BUTTONS.add(new MenuButton(WIDTH/2, buttonStartY + i*(MENU_BUTTON_GAP + MENU_BUTTON_HEIGHT), options[i]));
+        for (int i = 0; i < MENU_OPTIONS.length; i++) {
+            MENU_BUTTONS.add(new MenuButton(WIDTH/2, buttonStartY + i*(MENU_BUTTON_GAP + MENU_BUTTON_HEIGHT), MENU_OPTIONS[i]));
         }
     }
 
@@ -130,14 +135,14 @@ public class GameBoard extends GameEngine implements MouseListener {
             // Draw Tiger Stats
             changeColor(black);
             translate(-BOARD_SIZE/2.0, -BOARD_SIZE/2.0 - 20);
-            drawText(0, 0, "GOATS KILLED:   " + GOATS_KILLED, "Queensides", 25);
+            drawText(0, 0, "GOATS KILLED:   " + GOATS_KILLED, "Queensides", BOARD_SIZE/30);
 
             // Draw Goat Stats
             changeColor(white);
             translate(BOARD_SIZE - 220, BOARD_SIZE + 70);
-            drawText(0, 0, "TIGERS TRAPPED:   " + TRAPPED_TIGERS.size(), "Queensides", 25);
+            drawText(0, 0, "TIGERS TRAPPED:   " + TRAPPED_TIGERS.size(), "Queensides", BOARD_SIZE/30);
             changeColor(black);
-            drawText(-20, -BOARD_SIZE - 70, "Remaining Goats:   " + (MAX_GOATS - GOATS_PLACED), "Queensides", 25);
+            drawText(-20, -BOARD_SIZE - 70, "Remaining Goats:   " + (MAX_GOATS - GOATS_PLACED), "Queensides", BOARD_SIZE/30);
             restoreLastTransform();
 
             // Draw Goats
@@ -160,6 +165,9 @@ public class GameBoard extends GameEngine implements MouseListener {
                 restoreLastTransform();
             }
         }
+
+        // Draw Background Music Icon
+        drawImage(bgMuted ? MutedImg : UnmutedImg, iconPos.getX(), iconPos.getY(), iconSize, iconSize);
     }
 
     public void boxGeneration() {
@@ -324,10 +332,7 @@ public class GameBoard extends GameEngine implements MouseListener {
                     }
                 }
             }
-        }
-
-        System.out.println(menuShown);
-        if (!menuShown) {
+        } else {
             // Adding goats
             for (Box b : BOXES) {
                 if (b.containsMouse(e.getX(), e.getY(), BOX_SIZE)) {
@@ -340,6 +345,14 @@ public class GameBoard extends GameEngine implements MouseListener {
                     }
                 }
             }
+        }
+
+        // Muting background music
+        if (e.getX() > iconPos.getX() && e.getX() < iconPos.getX() + iconSize && e.getY() > iconPos.getY() && e.getY() < iconPos.getY() + iconSize) {
+            bgMuted = !bgMuted;
+
+            if (bgMuted) stopAudioLoop(BackgroundMusic);
+            else startAudioLoop(BackgroundMusic);
         }
     }
 
