@@ -8,7 +8,7 @@ import java.awt.event.MouseListener;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-//todo MAKE TITLE ART
+
 public class GameBoard extends GameEngine implements MouseListener {
 
     // Dimensions and locations
