@@ -180,6 +180,7 @@ public class GameBoard extends GameEngine implements MouseListener {
     }
 
     public void resetGame() {
+        goatTurn = true;
         BOXES.clear();
         boxGeneration();
 
@@ -476,8 +477,10 @@ public class GameBoard extends GameEngine implements MouseListener {
 
     @Override
     public void keyPressed(KeyEvent e){
-        if (e.getKeyCode() == KeyEvent.VK_ESCAPE){
+        if (e.getKeyCode() == KeyEvent.VK_ESCAPE){ //Toggles menu
             menuShown = !menuShown;
+        } else if (e.getKeyCode() == KeyEvent.VK_ENTER) { //Resets game
+            resetGame();
         }
     }
 
