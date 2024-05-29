@@ -14,8 +14,8 @@ public class GameBoard extends GameEngine implements MouseListener {
     // Dimensions and locations
     private static final int WIDTH = (int)Toolkit.getDefaultToolkit().getScreenSize().getWidth();
     private static final int HEIGHT = (int)Toolkit.getDefaultToolkit().getScreenSize().getHeight();
-    private static final Point BOARD_POS = new Point(WIDTH/2, HEIGHT/2 - 100);
-    private static final int BOARD_SIZE = 850;
+    private static final Point BOARD_POS = new Point(WIDTH/2, HEIGHT/2);
+    private static final int BOARD_SIZE = HEIGHT/2;
     private static final int BOX_SIZE = 70;
 
     // Arrays
@@ -28,7 +28,7 @@ public class GameBoard extends GameEngine implements MouseListener {
     private static final ArrayList<MenuButton> MENU_BUTTONS = new ArrayList<>();
     private static final int MENU_BUTTON_HEIGHT = 150, MENU_BUTTON_WIDTH = 400, MENU_BUTTON_GAP = 70;
     private static final int buttonStartY = 275;
-    private static final String[] options = new String[] {"Play", "Rules", "Credits", "Quit"};
+    final String[] options = new String[] {"Play", "Rules", "Credits", "Quit"};
 
     // Assets
     private static Image BoardImg, GoatImg, TigerImg, GoatBackgroundImg, TigerBackgroundImg, ButtonImg;
@@ -326,6 +326,7 @@ public class GameBoard extends GameEngine implements MouseListener {
             }
         }
 
+        System.out.println(menuShown);
         if (!menuShown) {
             // Adding goats
             for (Box b : BOXES) {
