@@ -158,7 +158,7 @@ public class GameBoard extends GameEngine implements MouseListener {
                 drawImage(ButtonImg, b.x - MENU_BUTTON_WIDTH /2.0, b.y, MENU_BUTTON_WIDTH, MENU_BUTTON_HEIGHT);
 
                 saveCurrentTransform();
-                // If the window gets moves around hovering will still work
+                // If the window gets moved around hovering will still work
                 PointerInfo mouse = MouseInfo.getPointerInfo();
                 Point pos = new Point(mouse.getLocation());
                 SwingUtilities.convertPointFromScreen(pos, getWindow());
