@@ -28,7 +28,7 @@ public class GameBoard extends GameEngine implements MouseListener {
     private static final ArrayList<MenuButton> MENU_BUTTONS = new ArrayList<>();
     private static final int MENU_BUTTON_HEIGHT = 150, MENU_BUTTON_WIDTH = 400, MENU_BUTTON_GAP = 70;
     private static final int buttonStartY = 275;
-    final String[] options = new String[] {"Play", "Rules", "Credits", "Quit"};
+    private static final String[] options = new String[] {"Play", "Rules", "Credits", "Quit"};
 
     // Assets
     private static Image BoardImg, GoatImg, TigerImg, GoatBackgroundImg, TigerBackgroundImg, ButtonImg;
