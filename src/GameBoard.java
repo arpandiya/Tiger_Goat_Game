@@ -326,7 +326,6 @@ public class GameBoard extends GameEngine implements MouseListener {
             }
         }
 
-        System.out.println(menuShown);
         if (!menuShown) {
             // Adding goats
             for (Box b : BOXES) {
