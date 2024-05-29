@@ -16,7 +16,7 @@ public class GameBoard extends GameEngine implements MouseListener {
     private static final int HEIGHT = (int)Toolkit.getDefaultToolkit().getScreenSize().getHeight();
     private static final Point BOARD_POS = new Point(WIDTH/2, HEIGHT/2);
     private static final int BOARD_SIZE = HEIGHT/2;
-    private static final int BOX_SIZE = 70;
+    private static final int BOX_SIZE = BOARD_SIZE/10;
 
     // Arrays
     private static final ArrayList<Box> BOXES = new ArrayList<>(25);
