@@ -63,6 +63,9 @@ public abstract class GameEngine implements KeyListener, MouseListener, MouseMot
     //-------------------------------------------------------
     // Functions for setting up the window
     //-------------------------------------------------------
+
+    public JFrame getWindow() { return mFrame; }
+
     // Function to create the window and display it
     public void setupWindow(int width, int height) {
         mFrame = new JFrame();

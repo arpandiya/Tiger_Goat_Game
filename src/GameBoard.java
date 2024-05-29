@@ -1,10 +1,9 @@
 //https://docs.google.com/document/d/e/2PACX-1vSOmrJYAncRtGu2-jwqASUtNJWfECHw7ZeRrmU6yoQ3eUUhz_hXlLx8arDPqSiGXgfSX2oaxKzyxLqS/pub
 
-import javax.sound.sampled.AudioInputStream;
+import javax.swing.*;
 import java.awt.*;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -23,10 +22,14 @@ public class GameBoard extends GameEngine implements MouseListener {
     private static final ArrayList<Tiger> TIGERS = new ArrayList<>(4);
     private static final ArrayList<Goat> GOATS = new ArrayList<>(20);
     private static final ArrayList<Tiger> TRAPPED_TIGERS = new ArrayList<>(4);
-    private static final ArrayList<Button> BUTTONS = new ArrayList<>(4);
+
+    // Menu components
+    private static final ArrayList<MenuButton> MENU_BUTTONS = new ArrayList<>(4);
+    private static final int MENU_BUTTON_HEIGHT = 150, MENU_BUTTON_WIDTH = 400, MENU_BUTTON_GAP = 70;
+    private static final int buttonStartY = 275;
 
     // Assets
-    private static Image BoardImg, GoatImg, TigerImg, GoatBackgroundImg, TigerBackgroundImg, placeholderImg;
+    private static Image BoardImg, GoatImg, TigerImg, GoatBackgroundImg, TigerBackgroundImg, ButtonImg;
     private static AudioClip ValidMove, InvalidMove, GameOver;
 
     // Dragging
@@ -42,10 +45,7 @@ public class GameBoard extends GameEngine implements MouseListener {
     private static final int MAX_GOATS = 20;
     private static boolean gameOver = false;
     private static boolean goatTurn = true;
-    private static boolean menu, credits;
-
-    private static final int BUTTON_HEIGHT = 150, BUTTON_GAP = 70;
-    private static int buttonStartY = -BOARD_SIZE/2;
+    private static boolean menuShown = true;
 
     @Override
     public void init() {
@@ -56,17 +56,13 @@ public class GameBoard extends GameEngine implements MouseListener {
         TigerImg = loadImage("src/images/tigerImg.png");
         GoatBackgroundImg = loadImage("src/images/goatBackgroundImg.png");
         TigerBackgroundImg = loadImage("src/images/tigerBackgroundImg.png");
-
-        placeholderImg = loadImage("src/images/placeholder.png");
+        ButtonImg = loadImage("src/images/buttonImg.png");
 
         ValidMove = loadAudio("src/audio/validMove.wav");
         InvalidMove = loadAudio("src/audio/invalidMove.wav");
         GameOver = loadAudio("src/audio/gameOver.wav");
         AudioClip backgroundMusic = loadAudio("src/audio/background.wav");
         startAudioLoop(backgroundMusic, -15f);
-
-        menu = true;
-        credits = false;
 
         // Add boxes
         for (int y = 0; y < 5; y++) {
@@ -80,15 +76,16 @@ public class GameBoard extends GameEngine implements MouseListener {
             }
         }
 
+        // Add tigers
         TIGERS.add(new Tiger(0));
         TIGERS.add(new Tiger(4));
         TIGERS.add(new Tiger(20));
         TIGERS.add(new Tiger(24));
 
-        int buttonY = (HEIGHT/2 - (BOARD_SIZE/2));
-        for (int x = 0; x < 4; x++){
-            BUTTONS.add(new Button((WIDTH/2)-BOARD_SIZE/2, buttonY,x));
-            buttonY += BUTTON_HEIGHT + BUTTON_GAP;
+        // Add menu buttons
+        final String[] options = new String[] {"Play", "Rules", "Credits", "Quit"};
+        for (int i = 0; i < options.length; i++) {
+            MENU_BUTTONS.add(new MenuButton(WIDTH/2, buttonStartY + i*(MENU_BUTTON_GAP + MENU_BUTTON_HEIGHT), options[i]));
         }
     }
 
@@ -105,15 +102,15 @@ public class GameBoard extends GameEngine implements MouseListener {
     public void paintComponent() {
         changeBackgroundColor(Color.WHITE);
         clearBackground(WIDTH, HEIGHT);
-        saveCurrentTransform();
 
         // Draw Background
+        saveCurrentTransform();
         translate(WIDTH/2.0, HEIGHT/2.0);
         if (goatTurn) drawImage(GoatBackgroundImg, -WIDTH/2.0, -HEIGHT/2.0, WIDTH, HEIGHT);
         else drawImage(TigerBackgroundImg, -WIDTH/2.0, -HEIGHT/2.0, WIDTH, HEIGHT);
         restoreLastTransform();
 
-        if (!menu){
+        if (!menuShown){
             // Draw Game Over
             // work on this!!
             if (gameOver) {
@@ -141,10 +138,9 @@ public class GameBoard extends GameEngine implements MouseListener {
             // Draw Goat Stats
             changeColor(white);
             translate(BOARD_SIZE - 220, BOARD_SIZE + 70);
-            drawText(0, 0,"TIGERS TRAPPED:   " + TRAPPED_TIGERS.size(), "Queensides", 25);
-
+            drawText(0, 0, "TIGERS TRAPPED:   " + TRAPPED_TIGERS.size(), "Queensides", 25);
             changeColor(black);
-            drawText(-20, -BOARD_SIZE - 70,"Remaining Goats:   " + (MAX_GOATS - GOATS_PLACED), "Queensides", 25);
+            drawText(-20, -BOARD_SIZE - 70, "Remaining Goats:   " + (MAX_GOATS - GOATS_PLACED), "Queensides", 25);
             restoreLastTransform();
 
             // Draw Goats
@@ -156,15 +152,26 @@ public class GameBoard extends GameEngine implements MouseListener {
             for (Tiger t : TIGERS) {
                 drawImage(TigerImg, t.x + t.getPosOffset(), t.y + t.getPosOffset(), BOX_SIZE, BOX_SIZE);
             }
-        }
-        else{
+        } else {
+            // Draw Menu Buttons
+            for (MenuButton b : MENU_BUTTONS){
+                drawImage(ButtonImg, b.x - MENU_BUTTON_WIDTH /2.0, b.y, MENU_BUTTON_WIDTH, MENU_BUTTON_HEIGHT);
 
-//            translate(BOARD_POS.getX(), BOARD_POS.getY());
-            for (Button b : BUTTONS){
-                drawImage(placeholderImg, b.x, b.y, BOARD_SIZE, BUTTON_HEIGHT);
+                saveCurrentTransform();
+                // If the window gets moves around hovering will still work
+                PointerInfo mouse = MouseInfo.getPointerInfo();
+                Point pos = new Point(mouse.getLocation());
+                SwingUtilities.convertPointFromScreen(pos, getWindow());
+
+                if (b.containsMouse(pos.getX(), pos.getY(), MENU_BUTTON_WIDTH, MENU_BUTTON_HEIGHT)) {
+                    changeColor(white);
+                }
+                else changeColor(Color.lightGray);
+
+                drawText(b.x - 120, b.y + 10 + MENU_BUTTON_HEIGHT /2.0, b.option, "Queensides", 50);
+                restoreLastTransform();
             }
         }
-
     }
 
     public void resetGame() {
@@ -283,8 +290,7 @@ public class GameBoard extends GameEngine implements MouseListener {
         // The index of the jumped box has the index that's the average of the boxes on either side
         Box hoppedBox = BOXES.get((from + to) / 2);
 
-        // If it's occupied by a goat
-        if (hoppedBox.getOccupant() != null && hoppedBox.occupiedByGoat()) {
+        if (hoppedBox.occupiedByGoat()) {
             GOATS.remove(hoppedBox.getOccupant());
             hoppedBox.setOccupant(null);
             GOATS_KILLED++;
@@ -293,27 +299,21 @@ public class GameBoard extends GameEngine implements MouseListener {
         return false;
     }
 
-    // Click to add a tile
     @Override
     public void mouseClicked(MouseEvent e) {
-        if (menu){
-            for (Button b : BUTTONS){
-                if(b.containsMouse(e.getX(),e.getY(), BOARD_SIZE, BUTTON_HEIGHT)){
-                    System.out.println("Menu");
-                    if (b.index == 0){ //Play button
-                        resetGame();
-                        menu = false;
-                        credits = false;
-                    } else if (b.index == 1) { //Game rules
-                        
-                    } else if (b.index == 2) { //Credits
-                        
-                    } else if (b.index == 3) { //Exit
-                        System.exit(0);
-                    }
+        // Menu buttons
+        for (MenuButton b : MENU_BUTTONS) {
+            if (b.containsMouse(e.getX(), e.getY(), MENU_BUTTON_WIDTH, MENU_BUTTON_HEIGHT)) {
+                if (b.option.equals("Play")) {
+                    gameOver = false;
+                    menuShown = false;
                 }
             }
         }
+
+        if (menuShown) return;
+
+        // Adding goats
         for (Box b : BOXES) {
             if (b.containsMouse(e.getX(), e.getY(), BOX_SIZE)) {
                 if (goatTurn && b.getOccupant() == null && GOATS_PLACED < MAX_GOATS) {
@@ -330,7 +330,8 @@ public class GameBoard extends GameEngine implements MouseListener {
     // Intialising a drag
     @Override
     public void mousePressed(MouseEvent e) {
-        if (menu){return;}
+        if (menuShown) return;
+
         for (Goat g : GOATS) {
             if (g.containsMouse(e.getX(), e.getY(), BOX_SIZE) && goatTurn) {
                 mouseOffsetX = e.getX() - g.x;
@@ -365,10 +366,12 @@ public class GameBoard extends GameEngine implements MouseListener {
     // Drag a tile
     @Override
     public void mouseDragged(MouseEvent e) {
-        if (menu){return;}
+        if (menuShown) return;
+        if (startBox == null) return;
+
         int x = e.getX() - mouseOffsetX;
         int y = e.getY() - mouseOffsetY;
-        if (startBox == null) {return;}
+
         if (draggingATile) {
             if (draggedGoat != null && goatTurn && GOATS_PLACED == MAX_GOATS) {
                 draggedGoat.x = x;
@@ -383,7 +386,7 @@ public class GameBoard extends GameEngine implements MouseListener {
 
         for (Goat g : GOATS) {
             if (g.containsMouse(e.getX(), e.getY(), BOX_SIZE) && goatTurn) {
-                //draggingATile = true;
+//                draggingATile = true;
                 draggedGoat = g;
                 draggedGoat.x = x;
                 draggedGoat.y = y;
@@ -393,7 +396,7 @@ public class GameBoard extends GameEngine implements MouseListener {
 
         for (Tiger t : TIGERS) {
             if (t.containsMouse(e.getX(), e.getY(), BOX_SIZE) && !goatTurn) {
-                //draggingATile = true;
+//                draggingATile = true;
                 draggedTiger = t;
                 draggedTiger.x = x;
                 draggedTiger.y = y;
@@ -405,8 +408,9 @@ public class GameBoard extends GameEngine implements MouseListener {
     // Checking if valid move
     @Override
     public void mouseReleased(MouseEvent e) {
+        if (menuShown) return;
         if (startBox == null) return;
-        if (menu){return;}
+
         boolean moved = false;
 
         for (Box newBox : BOXES) {
@@ -461,9 +465,7 @@ public class GameBoard extends GameEngine implements MouseListener {
         draggedTiger = null;
     }
 
-    public static ArrayList<Goat> getGoats() { return GOATS; }
     public static ArrayList<Box> getBoxes() { return BOXES; }
-    public static ArrayList<Tiger> getTigers() { return TIGERS; }
 
     public static void main(String[] args) {
         createGame(new GameBoard(), 60);
