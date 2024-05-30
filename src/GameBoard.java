@@ -1,5 +1,3 @@
-//https://docs.google.com/document/d/e/2PACX-1vSOmrJYAncRtGu2-jwqASUtNJWfECHw7ZeRrmU6yoQ3eUUhz_hXlLx8arDPqSiGXgfSX2oaxKzyxLqS/pub
-
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.KeyEvent;
@@ -34,7 +32,7 @@ public class GameBoard extends GameEngine implements MouseListener {
     private static final Point iconPos = new Point(20, HEIGHT - iconSize - 40);
 
     // Assets
-    private static Image BoardImg, GoatImg, TigerImg, GoatBackgroundImg, TigerBackgroundImg, ButtonImg, MutedImg, UnmutedImg;
+    private static Image BoardImg, GoatImg, TigerImg, GoatBackgroundImg, TigerBackgroundImg, ButtonImg, MutedImg, UnmutedImg, TitleImg;
     private static Image TigerWinImg, GoatWinImg;
     private static AudioClip ValidMove, InvalidMove, GameOver, BackgroundMusic;
 
@@ -67,6 +65,7 @@ public class GameBoard extends GameEngine implements MouseListener {
         UnmutedImg = loadImage("src/images/unmutedImg.png");
         TigerWinImg = loadImage("src/images/tigerWin.png");
         GoatWinImg = loadImage("src/images/goatWin.png");
+        TitleImg = loadImage("src/images/titleImg.png");
 
 
         ValidMove = loadAudio("src/audio/validMove.wav");
@@ -106,7 +105,7 @@ public class GameBoard extends GameEngine implements MouseListener {
         changeBackgroundColor(Color.WHITE);
         clearBackground(WIDTH, HEIGHT);
 
-        // If the window gets moved around, the hovering effect will still work
+        // If the window gets moved around hovering will still work
         PointerInfo mouse = MouseInfo.getPointerInfo();
         Point pos = new Point(mouse.getLocation());
         SwingUtilities.convertPointFromScreen(pos, getWindow());
@@ -119,7 +118,7 @@ public class GameBoard extends GameEngine implements MouseListener {
         restoreLastTransform();
 
         if (!menuShown){
-             // Draw Board
+            // Draw Board
             saveCurrentTransform();
             translate(BOARD_POS.getX(), BOARD_POS.getY());
             drawImage(BoardImg, -BOARD_SIZE/2.0, -BOARD_SIZE/2.0, BOARD_SIZE, BOARD_SIZE);
@@ -147,6 +146,12 @@ public class GameBoard extends GameEngine implements MouseListener {
                 drawImage(TigerImg, t.x + t.getPosOffset(), t.y + t.getPosOffset(), BOX_SIZE, BOX_SIZE);
             }
         } else {
+            // Draw Title
+            drawImage(TitleImg, WIDTH/2.0 - WIDTH/4.0, HEIGHT/2.0 - (WIDTH*0.5)/2, WIDTH*0.5, (WIDTH*0.5)/3);
+
+
+
+
             // Draw Menu Buttons
             for (MenuButton b : MENU_BUTTONS){
                 drawImage(ButtonImg, b.x - MENU_BUTTON_WIDTH /2.0, b.y, MENU_BUTTON_WIDTH, MENU_BUTTON_HEIGHT);
@@ -162,6 +167,7 @@ public class GameBoard extends GameEngine implements MouseListener {
         drawImage(bgMuted ? MutedImg : UnmutedImg, iconPos.getX(), iconPos.getY(), iconSize, iconSize);
 
         // Draw Game Over
+        // work on this!!
         if (gameOver) {
 //                changeColor(Color.BLACK);
 //                drawSolidRectangle(120, 300, 520, 120);
@@ -175,9 +181,9 @@ public class GameBoard extends GameEngine implements MouseListener {
             saveCurrentTransform();
             translate(BOARD_POS.getX(), BOARD_POS.getY());
             if (GOATS_KILLED >= 9){ //tiger win
-                drawImage(TigerWinImg, -BOARD_SIZE/2, -BOARD_SIZE/2, BOARD_SIZE, BOARD_SIZE/2);
+                drawImage(TigerWinImg, -BOARD_SIZE/2.0, -BOARD_SIZE/2.0, BOARD_SIZE, BOARD_SIZE/2.0);
             } else if (TRAPPED_TIGERS.size() == 4) { //Goat win
-                drawImage(GoatWinImg, -BOARD_SIZE/2, -BOARD_SIZE/2, BOARD_SIZE, BOARD_SIZE/2);
+                drawImage(GoatWinImg, -BOARD_SIZE/2.0, -BOARD_SIZE/2.0, BOARD_SIZE, BOARD_SIZE/2.0);
             }
             restoreLastTransform();
         }
