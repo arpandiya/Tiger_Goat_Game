@@ -339,8 +339,7 @@ public class GameBoard extends GameEngine implements MouseListener {
             gameOver = false;
             menuShown = true;
             resetGame();
-        }
-        if (menuShown) {
+        } else if (menuShown) {
             // Menu buttons
             for (MenuButton b : MENU_BUTTONS) {
                 if (b.containsMouse(e.getX(), e.getY(), MENU_BUTTON_WIDTH, MENU_BUTTON_HEIGHT)) {
