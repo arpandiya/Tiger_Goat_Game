@@ -106,7 +106,7 @@ public class GameBoard extends GameEngine implements MouseListener {
         changeBackgroundColor(Color.WHITE);
         clearBackground(WIDTH, HEIGHT);
 
-        // If the window gets moved around hovering will still work
+        // If the window gets moved around, the hovering effect will still work
         PointerInfo mouse = MouseInfo.getPointerInfo();
         Point pos = new Point(mouse.getLocation());
         SwingUtilities.convertPointFromScreen(pos, getWindow());
@@ -162,7 +162,6 @@ public class GameBoard extends GameEngine implements MouseListener {
         drawImage(bgMuted ? MutedImg : UnmutedImg, iconPos.getX(), iconPos.getY(), iconSize, iconSize);
 
         // Draw Game Over
-        // work on this!!
         if (gameOver) {
 //                changeColor(Color.BLACK);
 //                drawSolidRectangle(120, 300, 520, 120);
@@ -208,6 +207,8 @@ public class GameBoard extends GameEngine implements MouseListener {
         GOATS_KILLED = 0;
         goatTurn = true;
         winSoundPlayed = false;
+
+        MENU_BUTTONS.getFirst().option = "Play";
 
         TIGERS.add(new Tiger(0));
         TIGERS.add(new Tiger(4));
