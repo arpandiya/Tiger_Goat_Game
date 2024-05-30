@@ -46,6 +46,7 @@ public class GameBoard extends GameEngine implements MouseListener {
     // Game conditions
     private static int GOATS_PLACED = 0;
     private static int GOATS_KILLED = 0;
+    private static final int GOATS_TO_KILL = 6;
     private static final int MAX_GOATS = 20;
     private static boolean gameOver = true;
     private static boolean goatTurn = true;
@@ -63,8 +64,8 @@ public class GameBoard extends GameEngine implements MouseListener {
         ButtonImg = loadImage("src/images/buttonImg.png");
         MutedImg = loadImage("src/images/mutedImg.png");
         UnmutedImg = loadImage("src/images/unmutedImg.png");
-        TigerWinImg = loadImage("src/images/tigerWin.png");
-        GoatWinImg = loadImage("src/images/goatWin.png");
+        TigerWinImg = loadImage("src/images/tigersWinImg.png");
+        GoatWinImg = loadImage("src/images/goatsWinImg.png");
         TitleImg = loadImage("src/images/titleImg.png");
 
 
@@ -91,7 +92,7 @@ public class GameBoard extends GameEngine implements MouseListener {
 
     @Override
     public void update(double dt) {
-        if (GOATS_KILLED >= 9 || TRAPPED_TIGERS.size() == 4) {
+        if (GOATS_KILLED >= GOATS_TO_KILL || TRAPPED_TIGERS.size() == 4) {
             gameOver = true;
             if (!winSoundPlayed){
                 playAudio(GameOver);
@@ -149,9 +150,6 @@ public class GameBoard extends GameEngine implements MouseListener {
             // Draw Title
             drawImage(TitleImg, WIDTH/2.0 - WIDTH/4.0, HEIGHT/2.0 - (WIDTH*0.5)/2, WIDTH*0.5, (WIDTH*0.5)/3);
 
-
-
-
             // Draw Menu Buttons
             for (MenuButton b : MENU_BUTTONS){
                 drawImage(ButtonImg, b.x - MENU_BUTTON_WIDTH /2.0, b.y, MENU_BUTTON_WIDTH, MENU_BUTTON_HEIGHT);
@@ -167,23 +165,14 @@ public class GameBoard extends GameEngine implements MouseListener {
         drawImage(bgMuted ? MutedImg : UnmutedImg, iconPos.getX(), iconPos.getY(), iconSize, iconSize);
 
         // Draw Game Over
-        // work on this!!
         if (gameOver) {
-//                changeColor(Color.BLACK);
-//                drawSolidRectangle(120, 300, 520, 120);
-//
-//                changeColor(Color.ORANGE);
-//                drawText( 200, 360, "Game Over !", "", 60);
-//
-//                changeColor(Color.WHITE);
-//                drawText( 240, 390, "Press Enter to restart!", "", 20);
-//                return;
             saveCurrentTransform();
             translate(BOARD_POS.getX(), BOARD_POS.getY());
-            if (GOATS_KILLED >= 9){ //tiger win
-                drawImage(TigerWinImg, -BOARD_SIZE/2.0, -BOARD_SIZE/2.0, BOARD_SIZE, BOARD_SIZE/2.0);
-            } else if (TRAPPED_TIGERS.size() == 4) { //Goat win
-                drawImage(GoatWinImg, -BOARD_SIZE/2.0, -BOARD_SIZE/2.0, BOARD_SIZE, BOARD_SIZE/2.0);
+
+            if (GOATS_KILLED >= GOATS_TO_KILL) { // Tiger wins
+                drawImage(TigerWinImg, -BOARD_SIZE/2.0, -BOARD_SIZE/2.0, BOARD_SIZE, BOARD_SIZE);
+            } else if (TRAPPED_TIGERS.size() == 4) { // Goat wins
+                drawImage(GoatWinImg, -BOARD_SIZE/2.0, -BOARD_SIZE/2.0, BOARD_SIZE, BOARD_SIZE);
             }
             restoreLastTransform();
         }
@@ -335,7 +324,7 @@ public class GameBoard extends GameEngine implements MouseListener {
 
     @Override
     public void mouseClicked(MouseEvent e) {
-        if(gameOver){
+        if (gameOver){
             gameOver = false;
             menuShown = true;
             resetGame();
