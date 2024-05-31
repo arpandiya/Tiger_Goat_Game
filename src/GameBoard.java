@@ -7,6 +7,15 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 
+
+/*
+    Arpan, 21009716
+    Daniel, 20008899
+    Michael, 23013368
+    Gaige, todo
+ */
+
+
 public class GameBoard extends GameEngine implements MouseListener {
 
     // Dimensions and locations
@@ -33,7 +42,7 @@ public class GameBoard extends GameEngine implements MouseListener {
 
     // Assets
     private static Image BoardImg, GoatImg, TigerImg, GoatBackgroundImg, TigerBackgroundImg, ButtonImg, MutedImg, UnmutedImg, TitleImg;
-    private static Image TigerWinImg, GoatWinImg, RulesImg;
+    private static Image TigerWinImg, GoatWinImg, RulesImg, CreditsImg;
     private static AudioClip ValidMove, InvalidMove, GameOver, BackgroundMusic;
 
     // Dragging
@@ -69,6 +78,7 @@ public class GameBoard extends GameEngine implements MouseListener {
         GoatWinImg = loadImage("src/images/goatsWinImg.png");
         TitleImg = loadImage("src/images/titleImg.png");
         RulesImg = loadImage("src/images/rulesImg.png");
+        CreditsImg = loadImage("src/images/creditsImg.png");
 
         ValidMove = loadAudio("src/audio/validMove.wav");
         InvalidMove = loadAudio("src/audio/invalidMove.wav");
@@ -162,7 +172,10 @@ public class GameBoard extends GameEngine implements MouseListener {
             }
         } else if (rulesShown) {
             translate(BOARD_POS.getX(), BOARD_POS.getY());
-            drawImage(RulesImg, -BOARD_SIZE/2.0, -BOARD_SIZE/2.0, BOARD_SIZE, BOARD_SIZE);
+            drawImage(RulesImg, -BOARD_SIZE / 2.0, -BOARD_SIZE / 2.0, BOARD_SIZE, BOARD_SIZE);
+        } else if (creditsShown) {
+                translate(BOARD_POS.getX(), BOARD_POS.getY());
+                drawImage(CreditsImg, -BOARD_SIZE/2.0, -BOARD_SIZE/2.0, BOARD_SIZE, BOARD_SIZE);
         } else if (gameOver) {
             saveCurrentTransform();
             translate(BOARD_POS.getX(), BOARD_POS.getY());
@@ -177,7 +190,6 @@ public class GameBoard extends GameEngine implements MouseListener {
 
         // Draw Background Music Icon
         drawImage(bgMuted ? MutedImg : UnmutedImg, iconPos.getX(), iconPos.getY(), iconSize, iconSize);
-
 
         restoreLastTransform();
         changeColor(black);
