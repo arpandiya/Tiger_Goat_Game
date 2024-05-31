@@ -33,7 +33,7 @@ public class GameBoard extends GameEngine implements MouseListener {
 
     // Assets
     private static Image BoardImg, GoatImg, TigerImg, GoatBackgroundImg, TigerBackgroundImg, ButtonImg, MutedImg, UnmutedImg, TitleImg;
-    private static Image TigerWinImg, GoatWinImg;
+    private static Image TigerWinImg, GoatWinImg, RulesImg;
     private static AudioClip ValidMove, InvalidMove, GameOver, BackgroundMusic;
 
     // Dragging
@@ -50,7 +50,8 @@ public class GameBoard extends GameEngine implements MouseListener {
     private static final int MAX_GOATS = 20;
     private static boolean gameOver = true;
     private static boolean goatTurn = true;
-    private static boolean menuShown = true, winSoundPlayed = true;
+    private static boolean boardShown = false, menuShown = true, rulesShown = false, creditsShown;
+    private static boolean winSoundPlayed = true;
 
     @Override
     public void init() {
@@ -67,7 +68,7 @@ public class GameBoard extends GameEngine implements MouseListener {
         TigerWinImg = loadImage("src/images/tigersWinImg.png");
         GoatWinImg = loadImage("src/images/goatsWinImg.png");
         TitleImg = loadImage("src/images/titleImg.png");
-
+        RulesImg = loadImage("src/images/rulesImg.png");
 
         ValidMove = loadAudio("src/audio/validMove.wav");
         InvalidMove = loadAudio("src/audio/invalidMove.wav");
@@ -118,7 +119,7 @@ public class GameBoard extends GameEngine implements MouseListener {
         else drawImage(TigerBackgroundImg, -WIDTH/2.0, -HEIGHT/2.0, WIDTH, HEIGHT);
         restoreLastTransform();
 
-        if (!menuShown){
+        if (boardShown){
             // Draw Board
             saveCurrentTransform();
             translate(BOARD_POS.getX(), BOARD_POS.getY());
@@ -146,7 +147,7 @@ public class GameBoard extends GameEngine implements MouseListener {
             for (Tiger t : TIGERS) {
                 drawImage(TigerImg, t.x + t.getPosOffset(), t.y + t.getPosOffset(), BOX_SIZE, BOX_SIZE);
             }
-        } else {
+        } else if (menuShown) {
             // Draw Title
             drawImage(TitleImg, WIDTH/2.0 - WIDTH/4.0, HEIGHT/2.0 - (WIDTH*0.5)/2, WIDTH*0.5, (WIDTH*0.5)/3);
 
@@ -159,10 +160,18 @@ public class GameBoard extends GameEngine implements MouseListener {
                 drawText(b.x - 120, b.y + 10 + MENU_BUTTON_HEIGHT /2.0, b.option, "Queensides", 50);
                 restoreLastTransform();
             }
+        } else if (rulesShown) {
+            translate(BOARD_POS.getX(), BOARD_POS.getY());
+            drawImage(RulesImg, -BOARD_SIZE/2.0, -BOARD_SIZE/2.0, BOARD_SIZE, BOARD_SIZE);
         }
 
         // Draw Background Music Icon
         drawImage(bgMuted ? MutedImg : UnmutedImg, iconPos.getX(), iconPos.getY(), iconSize, iconSize);
+
+        restoreLastTransform();
+        changeColor(black);
+        if (rulesShown || creditsShown) drawText(25, 40, "Press ESC to go back", "Queensides", 30);
+        else if (!menuShown) drawText(25, 40, "Press ESC to pause", "Queensides", 30);
 
         // Draw Game Over
         if (gameOver) {
@@ -201,6 +210,8 @@ public class GameBoard extends GameEngine implements MouseListener {
         GOATS_PLACED = 0;
         GOATS_KILLED = 0;
         goatTurn = true;
+        menuShown = true;
+        rulesShown = false;
         winSoundPlayed = false;
 
         MENU_BUTTONS.getFirst().option = "Play";
@@ -335,12 +346,29 @@ public class GameBoard extends GameEngine implements MouseListener {
                     switch (b.option) {
                         case "Reset":
                             resetGame();
-                            menuShown = false;
+                            menuShown = true;
+                            rulesShown = false;
+                            boardShown = false;
+                            creditsShown = false;
                             break;
                         case "Play":
                             MENU_BUTTONS.getFirst().option = "Reset";
-                            gameOver = false;
                             menuShown = false;
+                            rulesShown = false;
+                            boardShown = true;
+                            creditsShown = false;
+                            break;
+                        case "Rules":
+                            menuShown = false;
+                            rulesShown = true;
+                            boardShown = false;
+                            creditsShown = false;
+                            break;
+                        case "Credits":
+                            menuShown = false;
+                            rulesShown = false;
+                            boardShown = false;
+                            creditsShown = true;
                             break;
                         case "Quit":
                             System.exit(0);
@@ -511,8 +539,20 @@ public class GameBoard extends GameEngine implements MouseListener {
 
     @Override
     public void keyPressed(KeyEvent e) {
-        if (e.getKeyCode() == KeyEvent.VK_ESCAPE && !gameOver){
-            menuShown = !menuShown;
+        if (e.getKeyCode() == KeyEvent.VK_ESCAPE){
+            if (boardShown) {
+                menuShown = true;
+                boardShown = false;
+            } else if (rulesShown) {
+                menuShown = true;
+                rulesShown = false;
+            } else if (menuShown && !gameOver) {
+                menuShown = false;
+                boardShown = true;
+            } else if (creditsShown) {
+                menuShown = true;
+                creditsShown = false;
+            }
         }
     }
 
