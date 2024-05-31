@@ -119,7 +119,7 @@ public class GameBoard extends GameEngine implements MouseListener {
         else drawImage(TigerBackgroundImg, -WIDTH/2.0, -HEIGHT/2.0, WIDTH, HEIGHT);
         restoreLastTransform();
 
-        if (boardShown){
+        if (boardShown) {
             // Draw Board
             saveCurrentTransform();
             translate(BOARD_POS.getX(), BOARD_POS.getY());
@@ -163,18 +163,7 @@ public class GameBoard extends GameEngine implements MouseListener {
         } else if (rulesShown) {
             translate(BOARD_POS.getX(), BOARD_POS.getY());
             drawImage(RulesImg, -BOARD_SIZE/2.0, -BOARD_SIZE/2.0, BOARD_SIZE, BOARD_SIZE);
-        }
-
-        // Draw Background Music Icon
-        drawImage(bgMuted ? MutedImg : UnmutedImg, iconPos.getX(), iconPos.getY(), iconSize, iconSize);
-
-        restoreLastTransform();
-        changeColor(black);
-        if (rulesShown || creditsShown) drawText(25, 40, "Press ESC to go back", "Queensides", 30);
-        else if (!menuShown) drawText(25, 40, "Press ESC to pause", "Queensides", 30);
-
-        // Draw Game Over
-        if (gameOver) {
+        } else if (gameOver) {
             saveCurrentTransform();
             translate(BOARD_POS.getX(), BOARD_POS.getY());
 
@@ -185,6 +174,16 @@ public class GameBoard extends GameEngine implements MouseListener {
             }
             restoreLastTransform();
         }
+
+        // Draw Background Music Icon
+        drawImage(bgMuted ? MutedImg : UnmutedImg, iconPos.getX(), iconPos.getY(), iconSize, iconSize);
+
+
+        restoreLastTransform();
+        changeColor(black);
+        if (rulesShown || creditsShown) drawText(25, 40, "Press ESC to go back", "Queensides", 30);
+        else if (menuShown && !gameOver) drawText(25, 40, "Press ESC to unpause", "Queensides", 30);
+        else if (!menuShown) drawText(25, 40, "Press ESC to pause", "Queensides", 30);
     }
 
     public void boxGeneration() {
@@ -335,11 +334,7 @@ public class GameBoard extends GameEngine implements MouseListener {
 
     @Override
     public void mouseClicked(MouseEvent e) {
-        if (gameOver){
-            gameOver = false;
-            menuShown = true;
-            resetGame();
-        } else if (menuShown) {
+        if (menuShown) {
             // Menu buttons
             for (MenuButton b : MENU_BUTTONS) {
                 if (b.containsMouse(e.getX(), e.getY(), MENU_BUTTON_WIDTH, MENU_BUTTON_HEIGHT)) {
@@ -350,6 +345,7 @@ public class GameBoard extends GameEngine implements MouseListener {
                             rulesShown = false;
                             boardShown = false;
                             creditsShown = false;
+                            gameOver = true;
                             break;
                         case "Play":
                             MENU_BUTTONS.getFirst().option = "Reset";
@@ -357,6 +353,7 @@ public class GameBoard extends GameEngine implements MouseListener {
                             rulesShown = false;
                             boardShown = true;
                             creditsShown = false;
+                            gameOver = false;
                             break;
                         case "Rules":
                             menuShown = false;
@@ -375,6 +372,11 @@ public class GameBoard extends GameEngine implements MouseListener {
                     }
                 }
             }
+        } else if (gameOver) {
+            // Click to restart
+            gameOver = false;
+            menuShown = true;
+            resetGame();
         } else {
             // Adding goats
             for (Box b : BOXES) {
@@ -539,6 +541,7 @@ public class GameBoard extends GameEngine implements MouseListener {
 
     @Override
     public void keyPressed(KeyEvent e) {
+        System.out.println(gameOver);
         if (e.getKeyCode() == KeyEvent.VK_ESCAPE){
             if (boardShown) {
                 menuShown = true;
@@ -546,7 +549,7 @@ public class GameBoard extends GameEngine implements MouseListener {
             } else if (rulesShown) {
                 menuShown = true;
                 rulesShown = false;
-            } else if (menuShown && !gameOver) {
+            } else if (menuShown && !gameOver) { // Paused
                 menuShown = false;
                 boardShown = true;
             } else if (creditsShown) {
